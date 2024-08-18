@@ -1,0 +1,7 @@
+Arancibia,Rocio,766535646
+Arancibia,Gisela,36499226
+Doe,Jane,33555111
+Molina,Nahuel,33444555
+Perez,Juan,23234
+Ramirez,Rodrigo,36499229
+Selenio,Meteorito,3243456

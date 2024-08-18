@@ -1,0 +1,7 @@
+papa,0
+ajo,1
+cebolla,1
+tomate,0
+pagar luz,1
+llamar al seguro,0
+carne molida,0
