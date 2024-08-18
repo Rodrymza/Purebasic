@@ -24,7 +24,7 @@ Enumeration
   #boton_nueva_categoria : #boton_eliminar_categoria
   #boton_buscar_stock_ventana : #intro_stock
   #combo_stock_ventana : #lista_stock_ventana : #txt_salida
-  #descripcion_manual : #monto_manual
+  #descripcion_manual : #monto_manual : #boton_limpiar_venta
   
 EndEnumeration
 
@@ -195,6 +195,28 @@ Procedure busqueda_bdd(gadget,busqueda.s) ; comando SQL para buscar productos a 
   StatusBarText(#barra_estado,0,"Busqueda finalizada")
 EndProcedure
 
+Procedure limpiar_venta()
+  If CountGadgetItems(#lista_venta)=0
+    MessageRequester("Error","La lista de venta se encuentra vacia",#PB_MessageRequester_Error)
+  Else
+    For i=0 To CountGadgetItems(#lista_venta)-1
+      SetGadgetState(#lista_venta,i)
+      producto.s=GetGadgetText(#lista_venta)
+      OpenDatabase(#basedatos, dbname, user, pass)
+      DatabaseQuery(#basedatos,"SELECT stock FROM productos WHERE nombre='" + producto + "'")
+      NextDatabaseRow(#basedatos)
+      stock=GetDatabaseLong(#basedatos,0)
+      OpenDatabase(#basedatos,dbname, user, pass)
+      If DatabaseUpdate(#basedatos,"UPDATE productos SET stock=" + Str(stock+1) + " WHERE nombre='" + producto + "'")
+      EndIf 
+    Next
+    actualizar_lista_stock(#lista_stock,GetGadgetText(#combo_stock))
+    If IsWindow(#ventana_stock) : actualizar_lista_stock(#lista_stock_ventana,GetGadgetText(#combo_stock_ventana)) : EndIf 
+  EndIf 
+  ClearGadgetItems(#lista_venta)
+  StatusBarText(#barra_estado,0,"Lista borrada, stock actualizado")
+EndProcedure
+
 Procedure ventana_stock() ; ventana de stock para agregar a la lista de venta
   
   OpenWindow(#ventana_stock, 200,100, 570, 560, "Gestion de Stock", #PB_Window_SystemMenu)
@@ -251,7 +273,9 @@ Procedure ventana_stock() ; ventana de stock para agregar a la lista de venta
                   SetGadgetText(#total_venta,Str(total))
                   OpenDatabase(#basedatos,dbname,user,pass)
                   DatabaseUpdate(#basedatos,"UPDATE productos SET stock=" + Str(stock-1) + " WHERE nombre='" + producto + "'")
-                  actualizar_lista_stock(#lista_stock_ventana,GetGadgetText(#combo_stock))
+                  actualizar_lista_stock(#lista_stock_ventana,GetGadgetText(#combo_stock_ventana))
+                  actualizar_lista_stock(#lista_stock,GetGadgetText(#combo_stock))
+                  SetGadgetItemColor(#lista_venta, CountGadgetItems(#lista_venta)-1,#PB_Gadget_BackColor, $90EE90)
                 Else
                   MessageRequester("Atencion","El producto seleccionado no tiene STOCK",#PB_MessageRequester_Warning)
                 EndIf 
@@ -285,6 +309,9 @@ Procedure ventana_stock() ; ventana de stock para agregar a la lista de venta
                 MessageRequester("Error al abrir base de datos",DatabaseError())
               EndIf 
             EndIf 
+            
+            Case #boton_limpiar_venta
+            limpiar_venta()
         EndSelect
       Case #PB_Event_Menu
         Select EventMenu()
@@ -330,8 +357,6 @@ Procedure actualizar_historial()
 EndProcedure
 
 Procedure guardarventa() ; guardar la venta actual, reinicia la varialbe total a 0 ya que es global
-  result=MessageRequester("Atencion","Desea finalizar la venta actual?",#PB_MessageRequester_YesNo)
-  If result=#PB_MessageRequester_Yes
     AddElement(ventas_generales())
     ventas_generales()\fecha=FormatDate("%yyyy/%mm/%dd",Date())
     ventas_generales()\descripcion=InputRequester("Descripcion venta","Ingrese descripcion de venta","Consumidor Final ") + FormatDate("%hh:%ii:%ss", Date())
@@ -344,7 +369,6 @@ Procedure guardarventa() ; guardar la venta actual, reinicia la varialbe total a
     EndIf
     total=0
     actualizar_historial()
-  EndIf
 EndProcedure
 
 Procedure producto_manual()
@@ -371,6 +395,8 @@ Procedure producto_manual()
     EndSelect : EndSelect
     Until event=#PB_Event_CloseWindow Or quit=#True
 EndProcedure
+
+
 
 MessageRequester("Atencion","Esta es una version experimental, pueden existir errores")
 
@@ -408,6 +434,7 @@ ListIconGadget(#lista_venta, 20, 60, 490, 500, "Producto", 200, #PB_ListIcon_Ful
 AddGadgetColumn(#lista_venta, 1, "Categoria", 150)
 AddGadgetColumn(#lista_venta, 2, "Precio", 120)
 TextGadget(#PB_Any, 20, 20, 230, 30, "Nueva Venta", #PB_Text_Center)
+ButtonGadget(#boton_limpiar_venta, 380, 20, 130, 25, "Limpiar Venta")
 
 
 AddGadgetItem(#panel_principal, -1, "Administrar Categorias", 0, 2)
@@ -547,9 +574,16 @@ Repeat
             EndIf 
             
           Case #guardar_venta
-            guardarventa()
-            ClearGadgetItems(#lista_venta)
-            StatusBarText(#barra_estado,0,"Venta finalizada")
+            result=MessageRequester("Atencion","Desea finalizar la compra?",#PB_MessageRequester_YesNo)
+            If result=#PB_MessageRequester_Yes 
+              guardarventa()
+              ClearGadgetItems(#lista_venta)
+              StatusBarText(#barra_estado,0,"Venta finalizada")
+            EndIf 
+            
+          Case #boton_limpiar_venta
+            limpiar_venta()
+         
 
         EndSelect
       Case #PB_Event_Menu
@@ -563,8 +597,8 @@ Repeat
   Until event=#PB_Event_CloseWindow
 
 ; IDE Options = PureBasic 6.11 LTS (Windows - x64)
-; CursorPosition = 374
-; FirstLine = 87
-; Folding = Bs
+; CursorPosition = 215
+; FirstLine = 58
+; Folding = AD-
 ; EnableXP
 ; HideErrorLog
