@@ -103,7 +103,7 @@ Procedure actualizar_lista_stock(gadget, filtro.s) ; funcion que actualiza las l
   i=0
   While NextDatabaseRow(#basedatos)
     
-    AddGadgetItem(gadget, -1, GetDatabaseString(#basedatos,0) + Chr(10) + GetDatabaseString(#basedatos,1) + Chr(10) + Str(GetDatabaseLong(#basedatos,2)) + Chr(10) + Str(GetDatabaseLong(#basedatos,3)))
+    AddGadgetItem(gadget, -1, GetDatabaseString(#basedatos,0) + Chr(10) + GetDatabaseString(#basedatos,1) + Chr(10) + "$ " + Str(GetDatabaseLong(#basedatos,2)) + Chr(10) + Str(GetDatabaseLong(#basedatos,3)))
     
     If GetDatabaseLong(#basedatos,3)>=10 : SetGadgetItemColor(gadget,i,#PB_Gadget_FrontColor,$701919) : SetGadgetItemColor(gadget,i,#PB_Gadget_BackColor,$EBCE87)
     ElseIf  GetDatabaseLong(#basedatos,3)<10 And GetDatabaseLong(#basedatos,3)>0 : SetGadgetItemColor(gadget,i,#PB_Gadget_FrontColor,$000080) : SetGadgetItemColor(gadget,i,#PB_Gadget_BackColor,$B5E4FF)
@@ -323,7 +323,7 @@ Procedure actualizar_historial()
     For i=1 To lineas
       texto.s=texto + StringField(GetDatabaseString(#basedatos,4),i,#LF$) + " - "
     Next
-    AddGadgetItem(#historial_ventas,-1, GetDatabaseString(#basedatos,1) + Chr(10) + GetDatabaseString(#basedatos,2) + Chr(10) + Str(GetDatabaseLong(#basedatos,3)) + Chr(10) + texto)
+    AddGadgetItem(#historial_ventas,-1, GetDatabaseString(#basedatos,1) + Chr(10) + GetDatabaseString(#basedatos,2) + Chr(10) + "$ " + Str(GetDatabaseLong(#basedatos,3)) + Chr(10) + texto)
     texto=""
   Wend  
   CloseDatabase(#basedatos)
@@ -561,7 +561,8 @@ Repeat
   Until event=#PB_Event_CloseWindow
 
 ; IDE Options = PureBasic 6.11 LTS (Windows - x64)
-; FirstLine = 38
-; Folding = Bo
+; CursorPosition = 325
+; FirstLine = 49
+; Folding = Bs
 ; EnableXP
 ; HideErrorLog
