@@ -397,9 +397,6 @@ Procedure producto_manual()
 EndProcedure
 
 
-
-MessageRequester("Atencion","Esta es una version experimental, pueden existir errores")
-
 OpenWindow(#main_window, 0, 0, 590, 790, "Gestion de Stock y Ventas", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
 CreateMenu(#menu_ventana, WindowID(#main_window))
 MenuTitle("Archivo")
@@ -597,8 +594,8 @@ Repeat
   Until event=#PB_Event_CloseWindow
 
 ; IDE Options = PureBasic 6.11 LTS (Windows - x64)
-; CursorPosition = 215
-; FirstLine = 58
-; Folding = AD-
+; CursorPosition = 398
+; FirstLine = 54
+; Folding = AA-
 ; EnableXP
 ; HideErrorLog
