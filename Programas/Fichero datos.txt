@@ -1,6 +1,7 @@
-Rodrigo,Ramirez,36499229
-Arancibia,Rocio,38473146
-Pepe,Honguito,23123876
-Fernandez,Camila,8999333
+,,
 Aguero,Federico,3424324
+Arancibia,Rocio,38473146
+Fernandez,Camila,8999333
+Pepe,Honguito,23123876
 Ramirez, Juan Cruz,33445123
+Rodrigo,Ramirez,36499229
