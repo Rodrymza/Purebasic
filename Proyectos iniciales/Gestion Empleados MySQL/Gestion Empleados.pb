@@ -1,4 +1,10 @@
-﻿Enumeration
+﻿;Programa de Gestion de Empleados, con datos de cada empleado y categorizacion por sector
+;Uso de base de datos SQL
+;Rodry Ramirez (c) 2024
+;Curso Programacion Formacion Profesional
+;Profesor Ricardo Ponce
+
+Enumeration
   #busqueda_text : #Combo_sectores
   #boton_nuevo : #apellido_text
   #dni_text : #telefono_text
@@ -8,7 +14,8 @@
   #panel_principal : #lista_principal
   #basedatos : #barra_estado
   #boton_buscar : #tecla_intro
-  #titulo_panel_1 : #boton_guardar
+  #titulo_panel_1 : #boton_guardar : #boton_de_ayuda
+  #menu : #acerca_de : #ventana_ayuda
 EndEnumeration
 
 UseMySQLDatabase()
@@ -67,9 +74,39 @@ Procedure.s modificar_datos()
   ProcedureReturn GetGadgetText(#lista_principal)
 EndProcedure
 
+Procedure ventana_ayuda() ;del menu de ayuda-acerca de
+     
+   OpenWindow(#ventana_ayuda, 0, 0, 310, 210, "", #PB_Window_ScreenCentered | #PB_Window_SystemMenu)
+    TextGadget(#PB_Any, 30, 20, 160, 20, "Gestion de Empleados 1.0")
+    TextGadget(#PB_Any, 30, 50, 160, 20, "Rodry Ramirez (c) 2024")
+    TextGadget(#PB_Any, 30, 80, 160, 20, "rodrymza@gmail.com")
+    TextGadget(#PB_Any, 30, 110, 190, 20, "Curso Programacion Profesional")
+    TextGadget(#PB_Any, 30, 140, 190, 20, "Profesor: Ricardo Ponce")
+    ButtonGadget(#boton_de_ayuda, 110, 170, 100, 25, "Aceptar")
+    
+    Repeat  
+      event.l= WindowEvent()
+      Select Event
+        Case #PB_Event_CloseWindow
+          CloseWindow(#ventana_ayuda)   ;controlo que el evento de cerrar ventana solo ciere la ventana actual, de lo contrario se cerrarian las dos ventanas ejecutadas
+        Case #PB_Event_Gadget
+          Select EventGadget()
+            Case #boton_de_ayuda      ;al presionar el boton cerramos la ventana y salimos del subprograma
+              quit=#True
+              CloseWindow(#ventana_ayuda)
+          EndSelect
+      EndSelect
+      
+    Until event= #PB_Event_CloseWindow Or quit=#True
+  
+  EndProcedure
+
         
 ;Main
 OpenWindow(#main_window, 0, 0, 560, 600, "Gestion de empleados", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
+CreateMenu(#menu,WindowID(#main_window))
+MenuTitle("Archivo")
+MenuItem(#acerca_de,"Acerca de")
 TextGadget(#PB_Any, 40, 20, 130, 25, "Gestion de Personal")
 PanelGadget(#panel_principal, 20, 50, 520, 520)
 AddGadgetItem(#panel_principal, -1, "Listado")
@@ -164,22 +201,20 @@ Repeat
           
         Case #lista_principal
           If EventType()=#PB_EventType_LeftDoubleClick : dni=modificar_datos() : EndIf 
-        EndSelect
-      Case #PB_Event_Menu
-        Select EventMenu()
-          
+      EndSelect
+    Case #PB_Event_Menu
+      Select EventMenu()
         Case #tecla_intro
           If stringactive=#True : busqueda() : EndIf
-          
+        Case #acerca_de
+          ventana_ayuda()
       EndSelect
-      
   EndSelect
 Until event=#PB_Event_CloseWindow
 
 ; IDE Options = PureBasic 6.11 LTS (Windows - x64)
-; CursorPosition = 165
-; FirstLine = 113
-; Folding = 9
+; CursorPosition = 4
+; Folding = w
 ; Optimizer
 ; EnableXP
 ; HideErrorLog

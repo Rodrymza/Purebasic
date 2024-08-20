@@ -1,11 +1,4 @@
-﻿;Banco de datos, fichero simple que guarde nombrea, apellido y dni (ficha)
-;ventana debe tener
-;menu con ingreso de datos, consulta
-;3 campos para guardar
-;boton avanzar y retroceder
-;boton de grabacion
-;---------------------------------------------
-;Progrma fichero simple v2
+﻿;Progrma fichero simple v2 con estructura para guardar datos en SQL
 ;(c) Rodry Ramirez
 ; rodrymza@gmail.com
 
@@ -82,7 +75,7 @@ Procedure actualizar_lista()
 Procedure ventana_ayuda() ;del menu de ayuda-acerca de
      
    OpenWindow(#ventana_ayuda, 0, 0, 310, 210, "", #PB_Window_ScreenCentered | #PB_Window_SystemMenu)
-    TextGadget(#PB_Any, 30, 20, 160, 20, "Fichero simple v1.0")
+    TextGadget(#PB_Any, 30, 20, 160, 20, "Fichero simple v2.0 - Base de Datos SQL")
     TextGadget(#PB_Any, 30, 50, 160, 20, "Rodry Ramirez (c) 2024")
     TextGadget(#PB_Any, 30, 80, 160, 20, "rodrymza@gmail.com")
     TextGadget(#PB_Any, 30, 110, 190, 20, "Curso Programacion Profesional")
@@ -317,8 +310,8 @@ Repeat
   EndSelect
 Until Event= #PB_Event_CloseWindow
 ; IDE Options = PureBasic 6.11 LTS (Windows - x64)
-; CursorPosition = 65
-; FirstLine = 46
-; Folding = Ay
+; CursorPosition = 82
+; FirstLine = 52
+; Folding = Cy
 ; EnableXP
 ; DPIAware

@@ -1,53 +1,31 @@
-﻿
+﻿;Programa que gestiona y guarda las ventas diarias de un comercio
+;Datos guardados en txt
+;Rodry Ramirez (c) 2024
+
 Enumeration
-  #ventana_principal
-  #lista_ventas
-  #boton_nuevaVenta
-  #boton_borrar
-  #boton_modificar
-  #container_total
-  #container_filtrado
-  #Font_Window_2_0
-  #ventana_nuevaventa
-  #vendedor
-  #monto
-  #boton_aceptar
-  #titulo01
-  #Font_Window_3_0
-  #combo_mediosPago
-  #combo_medios_de_pago
-  #menu_principal
-  #mod_vendedores
-  #combo_vendedor
-  #listicon_modificar
-  #nuevo_lista
-  #modificar_lista
-  #borrar_lista
-  #ventana_modificacion
-  #mod_mediosdepago
-  #pago_predeterminado
-  #lista_medio_predeterminado
-  #boton_ok_medioPago
-  #ventana_pagoPredeterminado
-  #archivo_vendedores
-  #archivo_mediosDePago
-  #archivo_ventas
+  #ventana_principal : #lista_ventas : #boton_nuevaVenta
+  #boton_borrar : #boton_modificar : #container_total
+  #container_filtrado : #Font_Window_2_0 : #ventana_nuevaventa
+  #vendedor : #monto : #boton_aceptar
+  #titulo01 : #Font_Window_3_0 : #combo_mediosPago
+  #combo_medios_de_pago : #menu_principal : #mod_vendedores
+  #combo_vendedor : #listicon_modificar : #nuevo_lista
+  #modificar_lista : #borrar_lista : #ventana_modificacion
+  #mod_mediosdepago : #pago_predeterminado : #lista_medio_predeterminado
+  #boton_ok_medioPago : #ventana_pagoPredeterminado : #archivo_vendedores
+  #archivo_mediosDePago : #archivo_ventas
 EndEnumeration
 
 LoadFont(#Font_Window_2_0,"Trebuchet MS", 12)
 LoadFont(#Font_Window_3_0,"Times New Roman", 12)
 
 Global pago_predeterminado=0
-Define.s vendedores_string = "Vendedores", mediosPago_string = "Medios de Pago"
+Define.s vendedores_string = "Vendedores", mediosPago_string = "Medios de Pago", modificar="modificar", nueva="nueva"
 Global ventas$="Ventas.txt"
 
 NewList medios_de_pago.s()
-AddElement(medios_de_pago()) : medios_de_pago()="Efectivo" : AddElement(medios_de_pago()) : medios_de_pago()="Debito"
-AddElement(medios_de_pago()) : medios_de_pago()="Credito" : AddElement(medios_de_pago()) : medios_de_pago()="Transferencia"
-AddElement(medios_de_pago()) : medios_de_pago()="MercadoPago"
 
 NewList vendedores.s()
-AddElement(vendedores()) : vendedores()="Vendedor 1" : AddElement(vendedores()) : vendedores()="Vendedor 2"
 
 Structure detalles
   hora.s
@@ -63,7 +41,7 @@ Procedure actualizar_gadget(List lista.s(),gadget) ;actualizar listIcon en venta
   ForEach lista() : AddGadgetItem(gadget,-1,lista()) : Next
 EndProcedure
 
-Procedure nueva_venta(List listapagos.s(),List listavendedores.s(),List listaventas.detalles(), state,pago)
+Procedure nueva_venta(List listapagos.s(),List listavendedores.s(),List listaventas.detalles(), state,pago,label.s)
   OpenWindow(#ventana_nuevaventa, 0, 0, 400, 240, "", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
   TextGadget(#PB_Any, 40, 110, 100, 25, "Vendedor")
   ComboBoxGadget(#vendedor, 150, 105, 220, 25)
@@ -79,6 +57,8 @@ Procedure nueva_venta(List listapagos.s(),List listavendedores.s(),List listaven
   SetGadgetState(#vendedor,state)
   SetGadgetState(#combo_medios_de_pago,pago)
   SetActiveGadget(#monto)
+  If label="modificar" : SelectElement(listaventas(),GetGadgetState(#lista_ventas)) : SetGadgetText(#monto,listaventas()\monto) 
+    SetGadgetText(#titulo01,"Modificar Venta") : SetGadgetText(#combo_medios_de_pago,listaventas()\pago) : SetGadgetText(#vendedor,listaventas()\vendedor) : EndIf   
   Repeat
     event = WindowEvent()
     Select Event
@@ -87,8 +67,7 @@ Procedure nueva_venta(List listapagos.s(),List listavendedores.s(),List listaven
       Case #PB_Event_Gadget
         Select EventGadget()
           Case #boton_aceptar
-            AddElement(listaventas())
-            listaventas()\hora=FormatDate("%hh:%mm:%ss",Date())
+            If label="nueva" : AddElement(listaventas()) : listaventas()\hora=FormatDate("%hh:%mm:%ss",Date()) : EndIf 
             listaventas()\vendedor=GetGadgetText(#vendedor)
             listaventas()\pago=GetGadgetText(#combo_medios_de_pago)
             listaventas()\monto=GetGadgetText(#monto)
@@ -255,8 +234,21 @@ Repeat
     Case #PB_Event_Gadget
       Select EventGadget()
         Case #boton_nuevaVenta
-          nueva_venta(medios_de_pago(),vendedores(),lista_ventas(),GetGadgetState(#combo_vendedor),pago_predeterminado)
+          nueva_venta(medios_de_pago(),vendedores(),lista_ventas(),GetGadgetState(#combo_vendedor),pago_predeterminado,nueva)
           guardar_archivo_ventas(lista_ventas())
+        Case #boton_modificar
+          nueva_venta(medios_de_pago(),vendedores(),lista_ventas(),GetGadgetState(#combo_vendedor),pago_predeterminado,modificar)
+          guardar_archivo_ventas(lista_ventas())
+        Case #boton_borrar
+          result=MessageRequester("Atencion","Borrar la venta seleccionada?",#PB_MessageRequester_YesNo)
+          If result=#PB_MessageRequester_Yes
+            SelectElement(lista_ventas(),GetGadgetState(#lista_ventas))
+            DeleteElement(lista_ventas())
+            ClearGadgetItems(#lista_ventas)
+            ForEach lista_ventas() : AddGadgetItem(#lista_ventas,-1,lista_ventas()\hora + Chr(10) + lista_ventas()\vendedor + Chr(10) + lista_ventas()\pago + Chr(10) +lista_ventas()\monto + Chr(10)) : Next
+            guardar_archivo_ventas(lista_ventas())
+          EndIf 
+          
       EndSelect
     Case #PB_Event_Menu
       Select EventMenu()
@@ -276,7 +268,5 @@ Repeat
 Until event = #PB_Event_CloseWindow
 
 ; IDE Options = PureBasic 6.11 LTS (Windows - x64)
-; CursorPosition = 217
-; FirstLine = 75
 ; Folding = A9
 ; EnableXP
