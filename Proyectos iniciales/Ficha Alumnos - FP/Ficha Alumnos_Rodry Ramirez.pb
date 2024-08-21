@@ -11,6 +11,7 @@ Enumeration
   #boton_modificar : #boton_borrar
   #panel_principal : #lista_principal
   #foto_principal :#imagen : #base_datos
+  #ventana_ayuda : #boton_de_ayuda
 EndEnumeration
 
 UseJPEGImageDecoder() : UseMySQLDatabase() : UsePNGImageDecoder()
@@ -33,16 +34,18 @@ EndIf
 Global NewList alumnos.datos()
 
 Procedure actualizar_lista()
+  n=0
   ClearList(documentos())
   ClearGadgetItems(#lista_principal)
   OpenDatabase(#base_datos, dbname, user, pass)
   DatabaseQuery(#base_datos,"SELECT * FROM " + tablename)
   While NextDatabaseRow(#base_datos)
-    AddGadgetItem(#lista_principal,-1, Str(GetDatabaseLong(#base_datos,0)) + Chr(10) + GetDatabaseString(#base_datos,1) + ", " + GetDatabaseString(#base_datos,2) + Chr(10) + GetDatabaseString(#base_datos,3) + Chr(10) + Str(GetDatabaseLong(#base_datos,4))) 
+    AddGadgetItem(#lista_principal,n, Str(GetDatabaseLong(#base_datos,0)) + Chr(10) + GetDatabaseString(#base_datos,1) + ", " + GetDatabaseString(#base_datos,2) + Chr(10) + GetDatabaseString(#base_datos,3) + Chr(10) + Str(GetDatabaseLong(#base_datos,4))) 
+    If n%2=0 : SetGadgetItemColor(#lista_principal,n,#PB_Gadget_BackColor,RGB(187, 255, 255)) : Else : SetGadgetItemColor(#lista_principal,n,#PB_Gadget_BackColor,$FACE87) : EndIf 
     AddElement(documentos()) : documentos()=GetDatabaseLong(#base_datos,0)
+    n=n+1
   Wend
 EndProcedure
-
 
 Procedure actualizar_campos()
  
@@ -113,7 +116,29 @@ Procedure modificar(dni_modificar.s)
   imagen_cambiada=1
 EndProcedure
 
-    
+Procedure ventana_acercade() ;del menu de ayuda-acerca de
+   OpenWindow(#ventana_ayuda, 0, 0, 310, 210, "", #PB_Window_ScreenCentered | #PB_Window_SystemMenu)
+    TextGadget(#PB_Any, 30, 20, 280, 20, "Gestion de Alumnos v1.0")
+    TextGadget(#PB_Any, 30, 50, 160, 20, "Rodry Ramirez (c) 2024")
+    TextGadget(#PB_Any, 30, 80, 160, 20, "rodrymza@gmail.com")
+    TextGadget(#PB_Any, 30, 110, 190, 20, "Curso Programacion Profesional")
+    TextGadget(#PB_Any, 30, 140, 190, 20, "Profesor: Ricardo Ponce")
+    ButtonGadget(#boton_de_ayuda, 110, 170, 100, 25, "Aceptar")
+    Repeat  
+      event.l= WindowEvent()
+      Select Event
+        Case #PB_Event_CloseWindow
+          CloseWindow(#ventana_ayuda)  
+        Case #PB_Event_Gadget
+          Select EventGadget()
+            Case #boton_de_ayuda
+              quit=#True
+              CloseWindow(#ventana_ayuda)
+          EndSelect
+      EndSelect
+    Until event= #PB_Event_CloseWindow Or quit=#True
+  EndProcedure
+
 LoadImage(#imagen,"sin_foto.png") 
 ResizeImage(#imagen,160,160)
 
@@ -153,7 +178,6 @@ OpenWindow(#main_window, 0, 0, 560, 440, "Gestion de Alumnos", #PB_Window_System
   CloseGadgetList()
   
   actualizar_lista()
-  ForEach documentos() : Debug documentos() : Next
   
   Repeat : event=WindowEvent()
     Select event
@@ -166,9 +190,7 @@ OpenWindow(#main_window, 0, 0, 560, 440, "Gestion de Alumnos", #PB_Window_System
               MessageRequester("Atencion","El documento ya se encuentra ingresado en la base de datos",#PB_MessageRequester_Warning)
               modificar(GetGadgetText(#dni))
               cont=0
-              
             Else
-              
               If imagen_cambiada=0 
                 MessageRequester("Atencion","Falta subir la foto",#PB_MessageRequester_Warning)
               Else
@@ -192,20 +214,24 @@ OpenWindow(#main_window, 0, 0, 560, 440, "Gestion de Alumnos", #PB_Window_System
                 modificar(GetGadgetText(#dni))
                 cont=cont+1
               EndIf 
-            EndIf 
+            EndIf
+          Case #lista_principal
+            If EventType()=#PB_EventType_LeftDoubleClick : modificar(GetGadgetText(#lista_principal))  :  EndIf 
         EndSelect
       Case #PB_Event_Menu
         Select EventMenu()
           Case #nuevo 
             actualizar_campos() : SetGadgetText(#boton_guardar,"Guardar")
+          Case #acerca_de
+            ventana_acercade()
         EndSelect
         
     EndSelect
   Until event=#PB_Event_CloseWindow
   
 ; IDE Options = PureBasic 6.11 LTS (Windows - x64)
-; CursorPosition = 53
-; FirstLine = 38
-; Folding = 8-
+; CursorPosition = 120
+; FirstLine = 40
+; Folding = A-
 ; EnableXP
 ; HideErrorLog
