@@ -1,20 +1,6 @@
-﻿;Programa que gestiona y guarda las ventas diarias de un comercio
-;Datos guardados en txt
-;Rodry Ramirez (c) 2024
-
+﻿
 Enumeration
   #ventana_principal : #lista_ventas : #boton_nuevaVenta
-<<<<<<< HEAD
-  #boton_borrar : #boton_modificar : #container_total
-  #container_filtrado : #Font_Window_2_0 : #ventana_nuevaventa
-  #vendedor : #monto : #boton_aceptar
-  #titulo01 : #Font_Window_3_0 : #combo_mediosPago
-  #combo_medios_de_pago : #menu_principal : #mod_vendedores
-  #combo_vendedor : #listicon_modificar : #nuevo_lista
-  #modificar_lista : #borrar_lista : #ventana_modificacion
-  #mod_mediosdepago : #pago_predeterminado : #lista_medio_predeterminado
-  #boton_ok_medioPago : #ventana_pagoPredeterminado : #archivo_vendedores
-=======
   #boton_borrar : #boton_modificar :  #container_total
   #container_filtrado :  #Font_Window_2_0
   #ventana_nuevaventa :  #vendedor
@@ -28,20 +14,26 @@ Enumeration
   #mod_mediosdepago : #pago_predeterminado
   #lista_medio_predeterminado : #boton_ok_medioPago
   #ventana_pagoPredeterminado : #archivo_vendedores
->>>>>>> modificaciones
-  #archivo_mediosDePago : #archivo_ventas
+  #archivo_mediosDePago : #archivo_ventas : #basedatos
 EndEnumeration
+
+UseMySQLDatabase()
+Global dbname.s="host=localhost port=3306 dbname=ventas_diarias", user.s="rodry", pass.s="rodry1234"
 
 LoadFont(#Font_Window_2_0,"Trebuchet MS", 12)
 LoadFont(#Font_Window_3_0,"Times New Roman", 12)
 
 Global pago_predeterminado=0
-Define.s vendedores_string = "Vendedores", mediosPago_string = "Medios de Pago", modificar="modificar", nueva="nueva"
+Define.s vendedores_string = "Vendedores", mediosPago_string = "Medios de Pago"
 Global ventas$="Ventas.txt"
 
 NewList medios_de_pago.s()
+;AddElement(medios_de_pago()) : medios_de_pago()="Efectivo" : AddElement(medios_de_pago()) : medios_de_pago()="Debito"
+;AddElement(medios_de_pago()) : medios_de_pago()="Credito" : AddElement(medios_de_pago()) : medios_de_pago()="Transferencia"
+;AddElement(medios_de_pago()) : medios_de_pago()="MercadoPago"
 
 NewList vendedores.s()
+;AddElement(vendedores()) : vendedores()="Vendedor 1" : AddElement(vendedores()) : vendedores()="Vendedor 2"
 
 Structure detalles
   hora.s
@@ -52,12 +44,54 @@ EndStructure
 
 NewList lista_ventas.detalles()
 
+
+Procedure leer_vendedores_pagos(vendedor,pago)
+  ClearGadgetItems(vendedor & pago)
+  OpenDatabase(#basedatos, dbname, user, pass)
+  DatabaseQuery(#basedatos,"SELECT * FROM medios_pago")
+  While NextDatabaseRow(#basedatos)
+    AddGadgetItem(pago, -1, GetDatabaseString(#basedatos,0))
+  Wend  
+  OpenDatabase(#basedatos, dbname, user, pass)
+  DatabaseQuery(#basedatos, "SELECT * FROM vendedores")
+  While NextDatabaseRow(#basedatos)
+    AddGadgetItem(vendedor,  -1, GetDatabaseString(#basedatos,1))
+  Wend  
+  
+EndProcedure
+
+Procedure conectarbdd(comandosql.s)
+  OpenDatabase(#basedatos,dbname, user, pass)
+  If DatabaseUpdate(#basedatos,comandosql)
+    ProcedureReturn #True
+  Else
+    ProcedureReturn #False
+  EndIf   
+EndProcedure
+
+Procedure crear_tablas()
+  retorno=1
+  If Not conectarbdd("CREATE TABLE vendedores (id INT AUTO_INCREMENT NOT NULL, nombre varchar(45) NOT NULL, PRIMARY KEY (id))")
+    retorno=0
+    MessageRequester("Error","Error al creat tabla de vendedores" + DatabaseError())
+  EndIf
+  If Not conectarbdd("CREATE TABLE medios_pago (nombres VARCHAR(45), PRIMARY KEY(nombres))")
+    MessageRequester("Error","No se creo la tabla de medios de pago, error: " + DatabaseError())
+    retorno=0
+  EndIf 
+  If Not conectarbdd("CREATE TABLE ventas (id INT AUTO_INCREMENT NOT NULL, fecha DATETIME, vendedor VARCHAR(20), pago VARCHAR(20), monto INT, PRIMARY KEY(id))")
+    MessageRequester("Error", "Error al crear tabla de ventas: " + DatabaseError())
+    retorno=0  
+  EndIf 
+ProcedureReturn retorno
+EndProcedure
+
 Procedure actualizar_gadget(List lista.s(),gadget) ;actualizar listIcon en ventana de modificacion
   ClearGadgetItems(gadget)
   ForEach lista() : AddGadgetItem(gadget,-1,lista()) : Next
 EndProcedure
 
-Procedure nueva_venta(List listapagos.s(),List listavendedores.s(),List listaventas.detalles(), state,pago,label.s)
+Procedure nueva_venta(List listapagos.s(),List listavendedores.s(),List listaventas.detalles(), state,pago)
   OpenWindow(#ventana_nuevaventa, 0, 0, 400, 240, "", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
   TextGadget(#PB_Any, 40, 110, 100, 25, "Vendedor")
   ComboBoxGadget(#vendedor, 150, 105, 220, 25)
@@ -73,8 +107,6 @@ Procedure nueva_venta(List listapagos.s(),List listavendedores.s(),List listaven
   SetGadgetState(#vendedor,state)
   SetGadgetState(#combo_medios_de_pago,pago)
   SetActiveGadget(#monto)
-  If label="modificar" : SelectElement(listaventas(),GetGadgetState(#lista_ventas)) : SetGadgetText(#monto,listaventas()\monto) 
-    SetGadgetText(#titulo01,"Modificar Venta") : SetGadgetText(#combo_medios_de_pago,listaventas()\pago) : SetGadgetText(#vendedor,listaventas()\vendedor) : EndIf   
   Repeat
     event = WindowEvent()
     Select Event
@@ -83,7 +115,8 @@ Procedure nueva_venta(List listapagos.s(),List listavendedores.s(),List listaven
       Case #PB_Event_Gadget
         Select EventGadget()
           Case #boton_aceptar
-            If label="nueva" : AddElement(listaventas()) : listaventas()\hora=FormatDate("%hh:%mm:%ss",Date()) : EndIf 
+            AddElement(listaventas())
+            listaventas()\hora=FormatDate("%hh:%mm:%ss",Date())
             listaventas()\vendedor=GetGadgetText(#vendedor)
             listaventas()\pago=GetGadgetText(#combo_medios_de_pago)
             listaventas()\monto=GetGadgetText(#monto)
@@ -237,12 +270,17 @@ TextGadget(#PB_Any, 250, 40, 140, 25, "Filtrar por medio de pago")
 TextGadget(#PB_Any, 20, 40, 70, 20, "Vendedor")
 ComboBoxGadget(#combo_vendedor, 100, 35, 130, 25)
 
-leer_archivo(vendedores_string,vendedores(),#archivo_vendedores)
-leer_archivo(mediosPago_string,medios_de_pago(),#archivo_mediosDePago)
+leer_vendedores_pagos(#combo_vendedor, #combo_mediosPago)
+;leer_archivo(vendedores_string,vendedores(),#archivo_vendedores)
+;leer_archivo(mediosPago_string,medios_de_pago(),#archivo_mediosDePago)
 leer_archivo_ventas(lista_ventas())
 ForEach medios_de_pago() : AddGadgetItem(#combo_mediosPago,-1,medios_de_pago()) : Next : SetGadgetState(#combo_mediosPago,pago_predeterminado)
 ForEach vendedores() : AddGadgetItem(#combo_vendedor,-1,vendedores()) : Next : SetGadgetState(#combo_vendedor,0)
 ForEach lista_ventas() : AddGadgetItem(#lista_ventas,-1,lista_ventas()\hora + Chr(10) + lista_ventas()\vendedor + Chr(10) + lista_ventas()\pago + Chr(10) +lista_ventas()\monto + Chr(10)) : Next
+
+If crear_tablas()
+  MessageRequester("Atencion","Se crearon las tablas necesarias para el sistema", #PB_MessageRequester_Info)
+EndIf   
 
 Repeat
   event = WindowEvent()
@@ -250,21 +288,8 @@ Repeat
     Case #PB_Event_Gadget
       Select EventGadget()
         Case #boton_nuevaVenta
-          nueva_venta(medios_de_pago(),vendedores(),lista_ventas(),GetGadgetState(#combo_vendedor),pago_predeterminado,nueva)
+          nueva_venta(medios_de_pago(),vendedores(),lista_ventas(),GetGadgetState(#combo_vendedor),pago_predeterminado)
           guardar_archivo_ventas(lista_ventas())
-        Case #boton_modificar
-          nueva_venta(medios_de_pago(),vendedores(),lista_ventas(),GetGadgetState(#combo_vendedor),pago_predeterminado,modificar)
-          guardar_archivo_ventas(lista_ventas())
-        Case #boton_borrar
-          result=MessageRequester("Atencion","Borrar la venta seleccionada?",#PB_MessageRequester_YesNo)
-          If result=#PB_MessageRequester_Yes
-            SelectElement(lista_ventas(),GetGadgetState(#lista_ventas))
-            DeleteElement(lista_ventas())
-            ClearGadgetItems(#lista_ventas)
-            ForEach lista_ventas() : AddGadgetItem(#lista_ventas,-1,lista_ventas()\hora + Chr(10) + lista_ventas()\vendedor + Chr(10) + lista_ventas()\pago + Chr(10) +lista_ventas()\monto + Chr(10)) : Next
-            guardar_archivo_ventas(lista_ventas())
-          EndIf 
-          
       EndSelect
     Case #PB_Event_Menu
       Select EventMenu()
@@ -284,9 +309,7 @@ Repeat
 Until event = #PB_Event_CloseWindow
 
 ; IDE Options = PureBasic 6.11 LTS (Windows - x64)
-<<<<<<< HEAD
-=======
-; CursorPosition = 33
->>>>>>> modificaciones
-; Folding = A9
+; CursorPosition = 273
+; FirstLine = 93
+; Folding = B1
 ; EnableXP
