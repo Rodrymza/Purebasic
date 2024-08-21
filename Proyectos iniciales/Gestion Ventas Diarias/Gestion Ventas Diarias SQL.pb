@@ -14,8 +14,11 @@ Enumeration
   #mod_mediosdepago : #pago_predeterminado
   #lista_medio_predeterminado : #boton_ok_medioPago
   #ventana_pagoPredeterminado : #archivo_vendedores
-  #archivo_mediosDePago : #archivo_ventas
+  #archivo_mediosDePago : #archivo_ventas : #basedatos
 EndEnumeration
+
+UseMySQLDatabase()
+Global dbname.s="host=localhost port=3306 dbname=ventas_diarias", user.s="rodry", pass.s="rodry1234"
 
 LoadFont(#Font_Window_2_0,"Trebuchet MS", 12)
 LoadFont(#Font_Window_3_0,"Times New Roman", 12)
@@ -25,12 +28,12 @@ Define.s vendedores_string = "Vendedores", mediosPago_string = "Medios de Pago"
 Global ventas$="Ventas.txt"
 
 NewList medios_de_pago.s()
-AddElement(medios_de_pago()) : medios_de_pago()="Efectivo" : AddElement(medios_de_pago()) : medios_de_pago()="Debito"
-AddElement(medios_de_pago()) : medios_de_pago()="Credito" : AddElement(medios_de_pago()) : medios_de_pago()="Transferencia"
-AddElement(medios_de_pago()) : medios_de_pago()="MercadoPago"
+;AddElement(medios_de_pago()) : medios_de_pago()="Efectivo" : AddElement(medios_de_pago()) : medios_de_pago()="Debito"
+;AddElement(medios_de_pago()) : medios_de_pago()="Credito" : AddElement(medios_de_pago()) : medios_de_pago()="Transferencia"
+;AddElement(medios_de_pago()) : medios_de_pago()="MercadoPago"
 
 NewList vendedores.s()
-AddElement(vendedores()) : vendedores()="Vendedor 1" : AddElement(vendedores()) : vendedores()="Vendedor 2"
+;AddElement(vendedores()) : vendedores()="Vendedor 1" : AddElement(vendedores()) : vendedores()="Vendedor 2"
 
 Structure detalles
   hora.s
@@ -40,6 +43,48 @@ Structure detalles
 EndStructure
 
 NewList lista_ventas.detalles()
+
+
+Procedure leer_vendedores_pagos(vendedor,pago)
+  ClearGadgetItems(vendedor & pago)
+  OpenDatabase(#basedatos, dbname, user, pass)
+  DatabaseQuery(#basedatos,"SELECT * FROM medios_pago")
+  While NextDatabaseRow(#basedatos)
+    AddGadgetItem(pago, -1, GetDatabaseString(#basedatos,0))
+  Wend  
+  OpenDatabase(#basedatos, dbname, user, pass)
+  DatabaseQuery(#basedatos, "SELECT * FROM vendedores")
+  While NextDatabaseRow(#basedatos)
+    AddGadgetItem(vendedor,  -1, GetDatabaseString(#basedatos,1))
+  Wend  
+  
+EndProcedure
+
+Procedure conectarbdd(comandosql.s)
+  OpenDatabase(#basedatos,dbname, user, pass)
+  If DatabaseUpdate(#basedatos,comandosql)
+    ProcedureReturn #True
+  Else
+    ProcedureReturn #False
+  EndIf   
+EndProcedure
+
+Procedure crear_tablas()
+  retorno=1
+  If Not conectarbdd("CREATE TABLE vendedores (id INT AUTO_INCREMENT NOT NULL, nombre varchar(45) NOT NULL, PRIMARY KEY (id))")
+    retorno=0
+    MessageRequester("Error","Error al creat tabla de vendedores" + DatabaseError())
+  EndIf
+  If Not conectarbdd("CREATE TABLE medios_pago (nombres VARCHAR(45), PRIMARY KEY(nombres))")
+    MessageRequester("Error","No se creo la tabla de medios de pago, error: " + DatabaseError())
+    retorno=0
+  EndIf 
+  If Not conectarbdd("CREATE TABLE ventas (id INT AUTO_INCREMENT NOT NULL, fecha DATETIME, vendedor VARCHAR(20), pago VARCHAR(20), monto INT, PRIMARY KEY(id))")
+    MessageRequester("Error", "Error al crear tabla de ventas: " + DatabaseError())
+    retorno=0  
+  EndIf 
+ProcedureReturn retorno
+EndProcedure
 
 Procedure actualizar_gadget(List lista.s(),gadget) ;actualizar listIcon en ventana de modificacion
   ClearGadgetItems(gadget)
@@ -225,12 +270,17 @@ TextGadget(#PB_Any, 250, 40, 140, 25, "Filtrar por medio de pago")
 TextGadget(#PB_Any, 20, 40, 70, 20, "Vendedor")
 ComboBoxGadget(#combo_vendedor, 100, 35, 130, 25)
 
-leer_archivo(vendedores_string,vendedores(),#archivo_vendedores)
-leer_archivo(mediosPago_string,medios_de_pago(),#archivo_mediosDePago)
+leer_vendedores_pagos(#combo_vendedor, #combo_mediosPago)
+;leer_archivo(vendedores_string,vendedores(),#archivo_vendedores)
+;leer_archivo(mediosPago_string,medios_de_pago(),#archivo_mediosDePago)
 leer_archivo_ventas(lista_ventas())
 ForEach medios_de_pago() : AddGadgetItem(#combo_mediosPago,-1,medios_de_pago()) : Next : SetGadgetState(#combo_mediosPago,pago_predeterminado)
 ForEach vendedores() : AddGadgetItem(#combo_vendedor,-1,vendedores()) : Next : SetGadgetState(#combo_vendedor,0)
 ForEach lista_ventas() : AddGadgetItem(#lista_ventas,-1,lista_ventas()\hora + Chr(10) + lista_ventas()\vendedor + Chr(10) + lista_ventas()\pago + Chr(10) +lista_ventas()\monto + Chr(10)) : Next
+
+If crear_tablas()
+  MessageRequester("Atencion","Se crearon las tablas necesarias para el sistema", #PB_MessageRequester_Info)
+EndIf   
 
 Repeat
   event = WindowEvent()
@@ -259,6 +309,7 @@ Repeat
 Until event = #PB_Event_CloseWindow
 
 ; IDE Options = PureBasic 6.11 LTS (Windows - x64)
-; CursorPosition = 33
-; Folding = A9
+; CursorPosition = 273
+; FirstLine = 93
+; Folding = B1
 ; EnableXP
