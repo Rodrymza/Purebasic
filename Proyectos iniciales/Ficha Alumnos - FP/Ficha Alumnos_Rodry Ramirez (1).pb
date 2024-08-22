@@ -9,10 +9,9 @@ Enumeration
   #boton_guardar : #boton_anterior
   #boton_siguiente : #dni : #nuevo
   #boton_modificar : #boton_borrar
-  #panel_principal : #lista_principal : #tecla_intro
+  #panel_principal : #lista_principal
   #foto_principal :#imagen : #base_datos
-  #ventana_ayuda : #boton_de_ayuda : #modificar_busqueda
-  #string_busqueda : #boton_busqueda
+  #ventana_ayuda : #boton_de_ayuda
 EndEnumeration
 
 UseJPEGImageDecoder() : UseMySQLDatabase() : UsePNGImageDecoder()
@@ -132,22 +131,8 @@ Procedure ventana_acercade() ;del menu de ayuda-acerca de
       EndSelect
     Until event= #PB_Event_CloseWindow Or quit=#True
   EndProcedure
-  
-  Procedure buscar_alumno(busqueda.s) ; buscar alumno con nombre y apellido
-    ClearGadgetItems(#lista_principal)
-    n=0
-    OpenDatabase(#base_datos, dbname, user, pass)
-    DatabaseQuery(#base_datos, "SELECT * FROM " + tablename + " WHERE nombre like '%" + busqueda.s + "%' OR apellido like '%" + busqueda + "%' ORDER BY apellido")
-    While NextDatabaseRow(#base_datos)
-      AddGadgetItem(#lista_principal,n, Str(GetDatabaseLong(#base_datos,0)) + Chr(10) + GetDatabaseString(#base_datos,1) + ", " + GetDatabaseString(#base_datos,2) + Chr(10) + GetDatabaseString(#base_datos,3) + Chr(10) + Str(GetDatabaseLong(#base_datos,4))) 
-      If n%2=0 : SetGadgetItemColor(#lista_principal,n,#PB_Gadget_BackColor,RGB(187, 255, 255)) : Else : SetGadgetItemColor(#lista_principal,n,#PB_Gadget_BackColor,$FACE87) : EndIf 
-      AddElement(documentos()) : documentos()=GetDatabaseLong(#base_datos,0)
-      n=n+1
-    Wend
-  EndProcedure
-  
-  
-  LoadImage(#imagen,"sin_foto.png") 
+
+LoadImage(#imagen,"sin_foto.png") 
 ResizeImage(#imagen,160,160)
 
 OpenWindow(#main_window, 0, 0, 560, 440, "Gestion de Alumnos", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
@@ -159,7 +144,7 @@ OpenWindow(#main_window, 0, 0, 560, 440, "Gestion de Alumnos", #PB_Window_System
   PanelGadget(#panel_principal, 20, 40, 520, 360)
   AddGadgetItem(#panel_principal, -1, "Ingreso y Modificacion")
   TextGadget(#PB_Any, 20, 68, 80, 25, "DNI")
-  StringGadget(#dni, 110, 68, 210, 30, "", #PB_String_Numeric)
+  StringGadget(#dni, 110, 68, 210, 30, "")
   TextGadget(#PB_Any, 20, 108, 80, 25, "Apellido")
   StringGadget(#apellido, 110, 108, 210, 30, "")
   TextGadget(#titulo, 80, 18, 180, 25, "Ingreso de Nuevo Alumno")
@@ -176,18 +161,19 @@ OpenWindow(#main_window, 0, 0, 560, 440, "Gestion de Alumnos", #PB_Window_System
   ButtonGadget(#boton_subir_imagen, 355, 18, 130, 20, "Subir Imagen")
   
   AddGadgetItem(#panel_principal, -1, "Lista de Alumnos", 0, 1)
-  ButtonGadget(#boton_busqueda, 360, 20, 100, 25, "Buscar")
-  StringGadget(#string_busqueda, 160, 20, 190, 25, "")
-  TextGadget(#PB_Any, 50, 20, 100, 25, "Buscar alumno")
-  ButtonGadget(#boton_modificar, 100, 300, 150, 25, "Modificar")
-  ButtonGadget(#boton_borrar, 270, 298, 150, 25, "Borrar")
-  ListIconGadget(#lista_principal, 10, 58, 500, 230, "DNI", 90, #PB_ListIcon_FullRowSelect | #PB_ListIcon_GridLines)
+   ListIconGadget(#lista_principal, 10, 30, 500, 258, "DNI", 80,#PB_ListIcon_FullRowSelect | #PB_ListIcon_GridLines)
   AddGadgetColumn(#lista_principal, 1, "Apellido y Nombre", 150)
   AddGadgetColumn(#lista_principal, 2, "Domicilio", 170)
-  AddGadgetColumn(#lista_principal, 3, "Telefono", 80)
+  AddGadgetColumn(#lista_principal, 3, "Telefono", 90)
+  ButtonGadget(#boton_modificar, 100, 298, 150, 25, "Modificar")
+  ButtonGadget(#boton_borrar, 270, 298, 150, 25, "Borrar")
+  
+  AddGadgetItem(#panel_principal, -1, "Buscar Alumno", 0, 2)
+
   CloseGadgetList()
-  AddKeyboardShortcut(#main_window,#PB_Shortcut_Return,#tecla_intro)
+  
   actualizar_lista()
+  
   Repeat : event=WindowEvent()
     Select event
       Case #PB_Event_Gadget
@@ -244,28 +230,6 @@ OpenWindow(#main_window, 0, 0, 560, 440, "Gestion de Alumnos", #PB_Window_System
             EndIf 
             SetGadgetText(#dni,Str(documentos()))
             modificar(Str(documentos()))
-            
-          Case #boton_busqueda
-            buscar_alumno(GetGadgetText(#string_busqueda))
-            
-          Case #string_busqueda
-            If EventType()=#PB_EventType_Focus : string_activo=#True
-            ElseIf EventType()=#PB_EventType_LostFocus : string_activo=#False 
-            EndIf
-            
-          Case #boton_borrar
-            If GetGadgetText(#lista_principal)=""
-              MessageRequester("Error","No selecciono ningun alumno de la lista",#PB_MessageRequester_Error)
-            Else
-              If MessageRequester("Atencion","Desea borrar al alumno seleccionado?",#PB_MessageRequester_YesNo)=#PB_MessageRequester_Yes
-                OpenDatabase(#base_datos, dbname, user, pass)
-                If DatabaseUpdate(#base_datos,"DELETE FROM " + tablename + " WHERE dni=" + GetGadgetText(#lista_principal))
-                  MessageRequester("Exito","Alumno borrado exitosamente")
-                  DeleteFile("Fotos/foto_" + GetGadgetText(#lista_principal) + ".jpg")
-                  actualizar_lista()
-                EndIf 
-              EndIf
-            EndIf 
         EndSelect
       Case #PB_Event_Menu
         Select EventMenu()
@@ -274,18 +238,14 @@ OpenWindow(#main_window, 0, 0, 560, 440, "Gestion de Alumnos", #PB_Window_System
             imagen_cambiada=0
           Case #acerca_de
             ventana_acercade()
-          Case #tecla_intro
-            If string_activo=#True
-              buscar_alumno(GetGadgetText(#string_busqueda))
-            EndIf 
         EndSelect
         
     EndSelect
   Until event=#PB_Event_CloseWindow
   
-; IDE Options = PureBasic 6.10 LTS (Windows - x64)
-; CursorPosition = 161
-; FirstLine = 86
-; Folding = J9
+; IDE Options = PureBasic 6.11 LTS (Windows - x64)
+; CursorPosition = 27
+; FirstLine = 77
+; Folding = B+
 ; EnableXP
 ; HideErrorLog
