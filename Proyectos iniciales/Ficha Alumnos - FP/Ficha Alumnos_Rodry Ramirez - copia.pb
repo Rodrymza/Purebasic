@@ -282,7 +282,8 @@ OpenWindow(#main_window, 0, 0, 560, 440, "Gestion de Alumnos", #PB_Window_System
   Until event=#PB_Event_CloseWindow
   
 ; IDE Options = PureBasic 6.10 LTS (Windows - x64)
-; CursorPosition = 139
+; CursorPosition = 51
+; FirstLine = 13
 ; Folding = B+
 ; EnableXP
 ; HideErrorLog
