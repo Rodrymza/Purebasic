@@ -133,8 +133,9 @@ Procedure ventana_acercade() ;del menu de ayuda-acerca de
     Until event= #PB_Event_CloseWindow Or quit=#True
   EndProcedure
   
-  Procedure buscar_alumno(busqueda.s)
+  Procedure buscar_alumno(busqueda.s) ; buscar alumno con nombre y apellido
     ClearGadgetItems(#lista_busqueda)
+    n=0
     OpenDatabase(#base_datos, dbname, user, pass)
     DatabaseQuery(#base_datos, "SELECT * FROM " + tablename + " WHERE nombre like '%" + busqueda.s + "%' OR apellido like '%" + busqueda + "%' ORDER BY apellido")
     While NextDatabaseRow(#base_datos)
@@ -194,7 +195,6 @@ OpenWindow(#main_window, 0, 0, 560, 440, "Gestion de Alumnos", #PB_Window_System
   CloseGadgetList()
   AddKeyboardShortcut(#main_window,#PB_Shortcut_Return,#tecla_intro)
   actualizar_lista()
-  
   Repeat : event=WindowEvent()
     Select event
       Case #PB_Event_Gadget
@@ -282,8 +282,7 @@ OpenWindow(#main_window, 0, 0, 560, 440, "Gestion de Alumnos", #PB_Window_System
   Until event=#PB_Event_CloseWindow
   
 ; IDE Options = PureBasic 6.10 LTS (Windows - x64)
-; CursorPosition = 253
-; FirstLine = 88
+; CursorPosition = 139
 ; Folding = B+
 ; EnableXP
 ; HideErrorLog
