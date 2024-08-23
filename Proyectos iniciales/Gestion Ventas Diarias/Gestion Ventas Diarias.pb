@@ -4,7 +4,6 @@
 
 Enumeration
   #ventana_principal : #lista_ventas : #boton_nuevaVenta
-<<<<<<< HEAD
   #boton_borrar : #boton_modificar : #container_total
   #container_filtrado : #Font_Window_2_0 : #ventana_nuevaventa
   #vendedor : #monto : #boton_aceptar
@@ -14,21 +13,6 @@ Enumeration
   #modificar_lista : #borrar_lista : #ventana_modificacion
   #mod_mediosdepago : #pago_predeterminado : #lista_medio_predeterminado
   #boton_ok_medioPago : #ventana_pagoPredeterminado : #archivo_vendedores
-=======
-  #boton_borrar : #boton_modificar :  #container_total
-  #container_filtrado :  #Font_Window_2_0
-  #ventana_nuevaventa :  #vendedor
-  #monto :  #boton_aceptar
-  #titulo01 :  #Font_Window_3_0
-  #combo_mediosPago :  #combo_medios_de_pago
-  #menu_principal : #mod_vendedores
-  #combo_vendedor : #listicon_modificar
-  #nuevo_lista : #modificar_lista
-  #borrar_lista : #ventana_modificacion
-  #mod_mediosdepago : #pago_predeterminado
-  #lista_medio_predeterminado : #boton_ok_medioPago
-  #ventana_pagoPredeterminado : #archivo_vendedores
->>>>>>> modificaciones
   #archivo_mediosDePago : #archivo_ventas
 EndEnumeration
 
@@ -124,22 +108,34 @@ Procedure modificar_lista(List lista_parametro.s(), string.s,gadget_principal)
             actualizar_gadget(lista_parametro(),#listicon_modificar)
             actualizar_gadget(lista_parametro(),gadget_principal) : SetGadgetState(gadget_principal,state)
           Case #modificar_lista
+            If GetGadgetText(#listicon_modificar)=""
+              MessageRequester("Error","No seleccionaste medio a modificar",#PB_MessageRequester_Error)
+            Else
             SelectElement(lista_parametro(),GetGadgetState(#listicon_modificar))
-            lista_parametro()=InputRequester("Modificar","Ingrese nuevo nombre","")
-            actualizar_gadget(lista_parametro(),#listicon_modificar)
-            actualizar_gadget(lista_parametro(),gadget_principal) : SetGadgetState(gadget_principal,state)
+              nombre.s=InputRequester("Modificar","Ingrese nuevo nombre","")
+              If nombre.s<>""
+                actualizar_gadget(lista_parametro(),#listicon_modificar)
+                actualizar_gadget(lista_parametro(),gadget_principal) : SetGadgetState(gadget_principal,state)
+              Else
+                MessageRequester("Error","No ingresaste un nombre",#PB_MessageRequester_Error)
+              EndIf 
+          EndIf 
           Case #listicon_modificar
-            If EventType() = #PB_EventType_LeftDoubleClick
+            If EventType() = #PB_EventType_LeftDoubleClick And GetGadgetText(#listicon_modificar)<>""
               SelectElement(lista_parametro(),GetGadgetState(#listicon_modificar))
-              lista_parametro()=InputRequester("Modificar","Ingrese nuevo nombre","")
-              actualizar_gadget(lista_parametro(),#listicon_modificar)
-              actualizar_gadget(lista_parametro(),gadget_principal) : SetGadgetState(gadget_principal,state)
+              nombre.s=InputRequester("Modificar","Ingrese nuevo nombre","")
+              If nombre.s<>""
+                actualizar_gadget(lista_parametro(),#listicon_modificar)
+                actualizar_gadget(lista_parametro(),gadget_principal) : SetGadgetState(gadget_principal,state)
+              Else
+                MessageRequester("Error","No ingresaste un nombre",#PB_MessageRequester_Error)
+              EndIf 
             EndIf 
         EndSelect
     EndSelect
     
   Until event = #PB_Event_CloseWindow
- HideWindow(#ventana_principal,0)
+  HideWindow(#ventana_principal,0)
 EndProcedure
 
 Procedure medio_predeterminado(List lista_parametro.s())
@@ -283,10 +279,8 @@ Repeat
   EndSelect
 Until event = #PB_Event_CloseWindow
 
-; IDE Options = PureBasic 6.11 LTS (Windows - x64)
-<<<<<<< HEAD
-=======
-; CursorPosition = 33
->>>>>>> modificaciones
-; Folding = A9
+; IDE Options = PureBasic 6.10 LTS (Windows - x64)
+; CursorPosition = 121
+; FirstLine = 48
+; Folding = E9
 ; EnableXP
