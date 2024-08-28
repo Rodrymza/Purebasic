@@ -59,6 +59,7 @@ EndProcedure
 
 Procedure validarInt(entrada$) ; valida que el string ingresado sea solo de numeros
   Protected i
+  EnableDebugger
   r=#True
   For i=1 To Len(entrada$)
     If Mid(entrada$,i,1)<"0" Or Mid(entrada$,i,1)>"9"
@@ -141,8 +142,9 @@ OpenWindow(#ventana_principal,0,0,290,440,"Ficha de estudiantes",#PB_Window_Syst
             EndSelect
         EndSelect
   Until event = #PB_Event_CloseWindow
-; IDE Options = PureBasic 6.11 LTS (Windows - x64)
-; CursorPosition = 6
-; Folding = 6
+; IDE Options = PureBasic 6.10 LTS (Windows - x64)
+; CursorPosition = 36
+; FirstLine = 30
+; Folding = 0
 ; EnableXP
 ; DPIAware
