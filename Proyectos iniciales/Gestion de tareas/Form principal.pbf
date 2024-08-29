@@ -7,7 +7,7 @@
 ; Event procedures needs to be put in another source file.
 ;
 
-Global Text_0, Text_1, Panel_1
+Global Text_0, Text_1
 
 Enumeration FormWindow
   #ventana_principal
@@ -41,9 +41,6 @@ Procedure Openventana_principal(x = 0, y = 0, width = 610, height = 510)
   Text_0 = TextGadget(#PB_Any, 30, 30, 50, 25, "Buscar:")
   ComboBoxGadget(#filtro_estado, 440, 30, 130, 25)
   Text_1 = TextGadget(#PB_Any, 390, 30, 40, 25, "Filtro")
-  Panel_1 = PanelGadget(#PB_Any, 10, 10, 570, 470)
-  AddGadgetItem(Panel_1, -1, "Tab 1")
-  CloseGadgetList()
 EndProcedure
 
 Procedure ventana_principal_Events(event)
