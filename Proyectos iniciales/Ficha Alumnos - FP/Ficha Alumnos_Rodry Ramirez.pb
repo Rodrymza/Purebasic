@@ -329,8 +329,8 @@ Repeat : event=WindowEvent()
 Until event=#PB_Event_CloseWindow
 CloseDatabase(#base_datos)
 ; IDE Options = PureBasic 6.10 LTS (Windows - x64)
-; CursorPosition = 181
-; FirstLine = 141
-; Folding = Ag
+; CursorPosition = 21
+; FirstLine = 21
+; Folding = Aw
 ; EnableXP
 ; HideErrorLog

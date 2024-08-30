@@ -1,0 +1,6 @@
+- Entrar a la pagina y cargar datos del paciente en la pestaña autorizaciones
+- Verificar que el afiliado se encuentre activo
+- Sacar copia a todo y firmarlo
+
+
+- Buscar practicas y autorizarlas, fijarse que aparezca como todo ok al final
