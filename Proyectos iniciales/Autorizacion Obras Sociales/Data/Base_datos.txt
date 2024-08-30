@@ -1,1 +1,2 @@
-Union Personal, 0, 0,  Verificar validez carnet
+Union Personal,0,0,Verificar validez carnet,1725026733
+Boreal,1,1,Autorizacion previa,1725027279

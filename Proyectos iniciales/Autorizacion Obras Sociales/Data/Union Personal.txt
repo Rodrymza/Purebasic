@@ -2,5 +2,5 @@
 - Verificar que el afiliado se encuentre activo
 - Sacar copia a todo y firmarlo
 
-
 - Buscar practicas y autorizarlas, fijarse que aparezca como todo ok al final
+-Atencion, a veces no se valida la autorizacion porque el carnet esta vencido

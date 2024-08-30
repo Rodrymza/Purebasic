@@ -37,6 +37,12 @@ Enumeration FormGadget
   #title_os
 EndEnumeration
 
+Enumeration FormFont
+  #Font_ventana_principal_0
+EndEnumeration
+
+LoadFont(#Font_ventana_principal_0,"Calibri", 12, #PB_Font_Bold)
+
 
 Procedure Openventana_principal(x = 0, y = 0, width = 780, height = 590)
   OpenWindow(#ventana_principal, x, y, width, height, "", #PB_Window_SystemMenu)
@@ -59,6 +65,7 @@ Procedure Openventana_principal(x = 0, y = 0, width = 780, height = 590)
   AddGadgetItem(#panel_principal, -1, "Modificar Datos", 0, 1)
   Text_2 = TextGadget(#PB_Any, 30, 38, 150, 25, "Nombre")
   StringGadget(#string_nombre, 190, 38, 250, 25, "")
+  SetGadgetFont(#string_nombre, FontID(#Font_ventana_principal_0))
   TextGadget(#Text_2_Copy1, 30, 158, 150, 25, "Requisito especial")
   StringGadget(#string_requisito_especial, 190, 158, 250, 25, "")
   Text_2_Copy1 = TextGadget(#PB_Any, 30, 78, 150, 25, "Autorizacion Previa?")
