@@ -1,0 +1,11 @@
+- Ingresar a la pagina, matricula 12193 Dr Ortiz
+- Documento Afiliado -> Nueva autorizacion
+
+1) Practica debe aparecer como AUTORIZADO, no pendiente
+2) Colocar matriula del medico solicitante
+ -Pueden eliminarse y modificarse practicas
+
+Atencion:
+	- Fijarse vencimiento del pedido medico
+	- Fijarse vencimiento de la autorizacion
+	- Sacar copia y hacer firmar todo

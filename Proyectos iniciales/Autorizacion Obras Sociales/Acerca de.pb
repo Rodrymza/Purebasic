@@ -1,16 +1,19 @@
 ﻿Enumeration 
   #ventana_ayuda
   #boton_de_ayuda
+  #about_ico
+  #about_image
 EndEnumeration
 
-
 Procedure ventana_acercade() ;del menu de ayuda-acerca de
-   OpenWindow(#ventana_ayuda, 0, 0, 310, 210, "", #PB_Window_ScreenCentered | #PB_Window_SystemMenu)
-    TextGadget(#PB_Any, 30, 20, 280, 20, "xxx-Nombre del programa-xxx")
-    TextGadget(#PB_Any, 30, 50, 160, 20, "Rodry Ramirez (c) 2024")
-    TextGadget(#PB_Any, 30, 80, 160, 20, "rodrymza@gmail.com")
-    TextGadget(#PB_Any, 30, 110, 190, 20, "Curso Programacion Profesional")
-    ButtonGadget(#boton_de_ayuda, 110, 170, 100, 25, "Aceptar")
+  OpenWindow(#ventana_ayuda, 0, 0, 380, 210, "", #PB_Window_ScreenCentered | #PB_Window_SystemMenu)
+  SendMessage_(WindowID(#ventana_ayuda), #WM_SETICON, 0, LoadImage(#about_ico,"about.ico"))
+
+    TextGadget(#PB_Any, 30, 60, 280, 20, "Autorizacion de Obras Sociales v1")
+    TextGadget(#PB_Any, 30, 90, 160, 20, "Rodry Ramirez (c) 2024")
+    TextGadget(#PB_Any, 30, 140, 160, 20, "rodrymza@gmail.com")
+    ButtonGadget(#boton_de_ayuda, 150, 170, 100, 25, "Aceptar")
+    ImageGadget(#about_image, 230, 32, 128, 128, LoadImage(#about_image,"medical.ico"))
     Repeat  
       event=WindowEvent()
       Select Event
@@ -28,7 +31,7 @@ Procedure ventana_acercade() ;del menu de ayuda-acerca de
   
   ventana_acercade()
 ; IDE Options = PureBasic 6.10 LTS (Windows - x64)
-; CursorPosition = 28
+; CursorPosition = 11
 ; Folding = -
 ; EnableXP
 ; HideErrorLog

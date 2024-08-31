@@ -1,6 +1,9 @@
 - Entrar a la pagina y cargar datos del paciente en la pestaña autorizaciones
+- Colocar numero de afiliado sin el ultimo digito
 - Verificar que el afiliado se encuentre activo
 - Sacar copia a todo y firmarlo
 
 - Buscar practicas y autorizarlas, fijarse que aparezca como todo ok al final
 -Atencion, a veces no se valida la autorizacion porque el carnet esta vencido
+
+- Siempre debe decir TAC Helicoidal y Resonancia Magnetica Nuclear

@@ -1,2 +1,12 @@
-Union Personal,0,0,Verificar validez carnet,1725026733
-Boreal,1,1,Autorizacion previa,1725027279
+Andes Salud,0,0,No se recibe plan verde gold,1725049165
+Boreal,1,1,Autorizacion previa,1725044430
+Medimas,0,0,Tac y rmn debe venir autorizado,1725049006
+OSDEPYM,1,0,Nota de admision,1725049685
+OSPE,0,0,Ver validez cobertura,1725050379
+OSSSEG,1,0,RMN y TC autorizacion previa,1725049492
+Omint,0,0,Solo se autoriza RMN,1725049617
+Prevencion Salud,0,0,Ninguno,1725032460
+Sancor,0,0,-,1725050057
+Servicio Penitenciario,1,0,-,1725049921
+Union Personal,0,0,Verificar validez carnet,1725049754
+DAMSU,1,0,-,1725050492
