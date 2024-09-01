@@ -1,0 +1,2 @@
+- Las RX puede autorizarse desde la pagina en la compu
+- RMN y TAC deben venir previamente autorizadas

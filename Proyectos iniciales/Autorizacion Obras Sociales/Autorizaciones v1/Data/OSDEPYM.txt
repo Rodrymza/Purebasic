@@ -1,0 +1,3 @@
+- Todo debe venir con autorizacion previa
+- Debe traer adicionalmente NOTA DE ADMISION
+- Verificar si abona coseguro o no

@@ -1,0 +1,10 @@
+- Verificar que la cobertura se encuentre ACTIVA
+- Prestadores --> DNI del paciente
+	Imprimir comprobante de validez de cobertura
+
+- ATENCION contraste debe venir previamente autorizado
+- ATENCION si trae mas de una resonancia, la primera se valida las demas deben traer autorizacion previa
+
+- PLANES IMPARES NO SE RECIBEN
+-YPF si se recibe si en COSEGURO dice NO
+- PLANES PARES Y COSEGURO no se recibe

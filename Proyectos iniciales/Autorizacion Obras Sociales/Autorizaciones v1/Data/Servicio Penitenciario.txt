@@ -1,0 +1,3 @@
+- Debe traer todo previamente autorizado
+- Revisar que prestador este bien colocado
+- Revisar que orden y autorizacion no se hayan vencido

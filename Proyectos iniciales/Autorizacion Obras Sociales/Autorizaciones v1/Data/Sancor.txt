@@ -1,0 +1,9 @@
+- Todo se autoriza desde la pagina
+- Se debe colocar como efector Dr. Ortiz
+- Prestaciones por codigo o descripcion
+- Prescriptor tipo ->Mendoza
+- Matricula del medico solicitante
+
+En el HIS:
+	*N° de tramite: numero de autorizacion
+	*Derivacion: numero de matricula del solicitante	

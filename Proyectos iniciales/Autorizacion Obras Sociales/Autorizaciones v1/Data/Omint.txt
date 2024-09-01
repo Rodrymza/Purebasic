@@ -1,0 +1,2 @@
+- Solo se entra a la pagina y se valida 
+- RMN se trae con previa autorizacion 

@@ -1,0 +1,5 @@
+-Trae todo previamente autorizado
+- Revisar:
+	* Fecha de vencimiento
+	* Sacar copia a todo
+	* Lugar de realizacion de estudio (PABRA)

@@ -31,9 +31,9 @@ LoadImage(#imagen_principal,"image.ico")
 LoadImage(#xray_icon, "xray.png")
 ResizeImage(#xray_icon, 88, 88)
 LoadFont(#calibri, "Calibri", 12)
-LoadFont(#calibri14, "Calibri Light", 14)
-LoadFont(#calibri13, "Calibri Light", 13)
-LoadFont(#calibri_negrita, "Calibri", 13, #PB_Font_Bold | #PB_Font_Italic)
+LoadFont(#calibri14, "Calibri Light", 13)
+LoadFont(#calibri13, "Calibri Light", 12)
+LoadFont(#calibri_negrita, "Calibri", 12, #PB_Font_Bold | #PB_Font_Italic)
 NewList obras_sociales.info()
 
 Global Dim boolean.s(1) : boolean(0) = "No" : boolean(1) = "Si"
@@ -52,26 +52,26 @@ Procedure ventana_acercade() ;del menu de ayuda-acerca de
     Select Event
       Case #PB_Event_CloseWindow
         CloseWindow(#ventana_ayuda) 
-      EndSelect
-    Until event= #PB_Event_CloseWindow
-  EndProcedure
+    EndSelect
+  Until event= #PB_Event_CloseWindow
+EndProcedure
 
 Procedure$ title(palabra$)
   If palabra$<>UCase(palabra$)
-  i.l=2
-  r$=UCase(Mid(palabra$,1,1))
-  While i<= Len(palabra$)
-    If Mid(palabra$,i,1)=" "
-      r$=r$+ UCase(Mid(palabra$,i,2))
-      i=i+2
-    Else
-      r$=r$+LCase(Mid(palabra$,i,1))
-      i=i+1
-    EndIf
-  Wend
-  ProcedureReturn r$
-Else 
-  ProcedureReturn palabra$
+    i.l=2
+    r$=UCase(Mid(palabra$,1,1))
+    While i<= Len(palabra$)
+      If Mid(palabra$,i,1)=" "
+        r$=r$+ UCase(Mid(palabra$,i,2))
+        i=i+2
+      Else
+        r$=r$+LCase(Mid(palabra$,i,1))
+        i=i+1
+      EndIf
+    Wend
+    ProcedureReturn r$
+  Else 
+    ProcedureReturn palabra$
   EndIf
 EndProcedure
 
@@ -107,7 +107,7 @@ Procedure buscar_elemento(string.s,List lista.info())
       ProcedureReturn 1
     EndIf 
   Wend
-    MessageRequester("Atencion","No seleccionaste ningun elemento",#PB_MessageRequester_Error)
+  MessageRequester("Atencion","No seleccionaste ningun elemento",#PB_MessageRequester_Error)
   ProcedureReturn 0
 EndProcedure
 
@@ -124,6 +124,9 @@ Procedure guardar_os(List lista.info())
     MessageRequester("Atencion","Guardado correctamente", #PB_MessageRequester_Info)
     SortStructuredList(lista(), #PB_Sort_Ascending, OffsetOf(info\nombre), TypeOf(info\nombre))
     actualizar_lista(lista(), #lista_obras_sociales)
+    DisableGadget(#string_nombre,1)
+    SetGadgetText(#title_os,title(GetGadgetText(#string_nombre)))
+    SetGadgetText(#title_pestana,modificar) : SetGadgetText(#string_nombre,title(GetGadgetText(#string_nombre)))
   Else
     MessageRequester("Error","No introduciste nombre de obra social",#PB_MessageRequester_Warning)
     ProcedureReturn 0
@@ -139,17 +142,18 @@ Procedure leer_datos(List lista.info())
       lista()\nombre=StringField(String,1,",") ;: Debug lista()\nombre + "."
       lista()\autorizacion=Val(StringField(String,2,",")) ;: Debug lista()\autorizacion
       lista()\coseguro=Val(StringField(String,3,","))     ;: Debug lista()\coseguro
-      lista()\requisito_especial=StringField(String,4,",") ;: Debug  "." + lista()\requisito_especial + "."
+      lista()\requisito_especial=StringField(String,4,",");: Debug  "." + lista()\requisito_especial + "."
       lista()\modificacion=Val(StringField(String, 5, ","))
       
       ReadFile(#archivo_detalles,"Data/" + lista()\nombre + ".txt")
       While Eof(#archivo_detalles)=0
         lista()\detallado=lista()\detallado + ReadString(#archivo_detalles) + Chr(10)
       Wend 
-      ;Debug lista()\detallado
+      CloseFile(#archivo_detalles)
     Wend
     SortStructuredList(lista(), #PB_Sort_Ascending, OffsetOf(info\nombre), TypeOf(info\nombre))
     actualizar_lista(lista(), #lista_obras_sociales)
+    CloseFile(#archivo_bdd)
   Else 
     MessageRequester("Error","No se pudo leer la base de datos", #PB_MessageRequester_Error)
   EndIf 
@@ -186,7 +190,16 @@ Procedure busqueda(List obras_sociales.info(),string.s)
   EndIf
 EndProcedure
 
-OpenWindow(#ventana_principal, 0, 0, 780, 590, "Autorizacion de Obras Sociales", #PB_Window_SystemMenu  | #PB_Window_ScreenCentered)
+Procedure borrarcampos()
+  DisableGadget(#string_nombre,0)
+  SetGadgetText(#title_pestana, anadir)
+  SetGadgetText(#string_nombre, "") : SetGadgetText(#editor_detalle, "") : SetGadgetState(#combo_autorizacion,0)
+  SetGadgetText(#string_requisito_especial, "") : SetGadgetText(#editor_mini, "") : SetGadgetState(#combo_coseguro,0)
+  SetActiveGadget(#string_nombre)
+  SetGadgetText(#title_os, "Nueva Obra Social")
+EndProcedure
+
+OpenWindow(#ventana_principal, 0, 0, 780, 610, "Autorizacion de Obras Sociales", #PB_Window_SystemMenu  | #PB_Window_ScreenCentered | #PB_Window_MinimizeGadget)
 SendMessage_(WindowID(#ventana_principal), #WM_SETICON, 0, ImageID(#icono))
 SetGadgetFont(#PB_Any, FontID(#calibri))
 TextGadget(#PB_Any, 250, 20, 230, 25, "Autorizacion Obras Sociales", #PB_Text_Center)
@@ -255,7 +268,6 @@ Repeat
           
         Case #guardar_detalle
           guardar_os(obras_sociales())
-          SetGadgetState(#panel_principal,0)
           
         Case #boton_eliminar
           If GetGadgetText(#lista_obras_sociales)=""
@@ -267,18 +279,18 @@ Repeat
                 Break
               EndIf 
             Wend  
-            result=MessageRequester("Atencion","Desea borrar la obra social " + obras_sociales()\nombre, #PB_MessageRequester_YesNo | #PB_MessageRequester_Warning)
+            result=MessageRequester("Atencion","Desea borrar la obra social " + obras_sociales()\nombre, #PB_MessageRequester_YesNo)
             If result=#PB_MessageRequester_Yes
-              If DeleteFile("Data/" + obras_sociales()\nombre + ".txt")
-                DeleteElement(obras_sociales())
-                actualizar_lista(obras_sociales(), #lista_obras_sociales)
-                guardar_base_datos(obras_sociales())
-                MessageRequester("Proceso Exitoso","Se borro correctamente la Obra Social del sistema", #PB_MessageRequester_Info)
-              Else
-                Debug "error al borrar archivo"
-              EndIf 
+              Debug "Data/" + obras_sociales()\nombre + ".txt"
+              DeleteFile("Data/" + obras_sociales()\nombre + ".txt")
+              DeleteElement(obras_sociales())
+              actualizar_lista(obras_sociales(), #lista_obras_sociales)
+              guardar_base_datos(obras_sociales())
+              borrarcampos()
+              MessageRequester("Proceso Exitoso","Se borro correctamente la Obra Social del sistema", #PB_MessageRequester_Info)
             EndIf 
           EndIf 
+          
           
         Case #mini_lista
           If EventType()=#PB_EventType_LeftDoubleClick : seleccion_elemento(obras_sociales(), GetGadgetText(#mini_lista)) : EndIf 
@@ -287,12 +299,8 @@ Repeat
           If EventType()=#PB_EventType_LeftDoubleClick : seleccion_elemento(obras_sociales(), GetGadgetText(#lista_obras_sociales)) : EndIf 
           
         Case #boton_anadir
-          DisableGadget(#string_nombre,0)
-          SetGadgetText(#title_pestana, anadir)
-          SetGadgetText(#string_nombre, "") : SetGadgetText(#editor_detalle, "") : SetGadgetState(#combo_autorizacion,0)
-          SetGadgetText(#string_requisito_especial, "") : SetGadgetText(#editor_mini, "") : SetGadgetState(#combo_coseguro,0)
-          SetGadgetState(#panel_principal,1) : SetActiveGadget(#string_nombre)
-          SetGadgetText(#title_os, "Nueva Obra Social")
+          borrarcampos()
+          SetGadgetState(#panel_principal,1)
           
         Case #string_nombre
           If EventType()=#PB_EventType_LostFocus
@@ -305,7 +313,7 @@ Repeat
               Next
             EndIf 
           EndIf 
-              
+          
         Case #boton_descripcion
           SetGadgetState(#panel_principal,2)
         Case #editor_detalle
@@ -328,10 +336,11 @@ Repeat
       EndSelect
   EndSelect
 Until event = #PB_Event_CloseWindow 
+
 ; IDE Options = PureBasic 6.10 LTS (Windows - x64)
-; CursorPosition = 315
-; FirstLine = 154
-; Folding = A5
+; CursorPosition = 302
+; FirstLine = 292
+; Folding = --
 ; EnableXP
 ; UseIcon = rx.ico
 ; Executable = C:\Users\Rodrigo\Desktop\Gestion Obras Sociales\Autorizaciones.exe
