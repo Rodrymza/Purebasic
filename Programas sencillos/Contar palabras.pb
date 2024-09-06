@@ -21,15 +21,15 @@ Repeat
     cont=0
   EndIf   
   
-  MessageRequester("Palabras contadas","Ingresaste " + cont + " palabras", #PB_MessageRequester_Info)
+ If palabra="salir"
+    MessageRequester("Salir","Salida del programa", #PB_MessageRequester_Ok)
+  Else
+    MessageRequester("Palabras contadas","Ingresaste " + cont + " palabras", #PB_MessageRequester_Info)
+  EndIf 
   
 Until palabra="salir"
 
-
-
-
 ; IDE Options = PureBasic 6.10 LTS (Windows - x64)
-; CursorPosition = 11
 ; Folding = -
 ; EnableXP
 ; HideErrorLog
