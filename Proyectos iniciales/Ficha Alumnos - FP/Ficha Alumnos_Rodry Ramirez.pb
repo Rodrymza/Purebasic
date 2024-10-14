@@ -309,6 +309,8 @@ Repeat : event=WindowEvent()
                 DeleteFile("Fotos/foto_" + GetGadgetText(#lista_principal) + ".jpg")
                 actualizar_lista()
               EndIf 
+            Else 
+              MessageRequester("Atencion","No se borro la ficha seleccionada", #PB_MessageRequester_Info)
             EndIf
           EndIf 
       EndSelect
@@ -328,9 +330,9 @@ Repeat : event=WindowEvent()
   EndSelect
 Until event=#PB_Event_CloseWindow
 CloseDatabase(#base_datos)
-; IDE Options = PureBasic 6.10 LTS (Windows - x64)
-; CursorPosition = 21
-; FirstLine = 21
-; Folding = Aw
+; IDE Options = PureBasic 6.12 LTS (Windows - x64)
+; CursorPosition = 255
+; FirstLine = 93
+; Folding = Ag
 ; EnableXP
 ; HideErrorLog

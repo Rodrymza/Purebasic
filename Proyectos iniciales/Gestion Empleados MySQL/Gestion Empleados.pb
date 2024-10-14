@@ -212,9 +212,10 @@ Repeat
   EndSelect
 Until event=#PB_Event_CloseWindow
 
-; IDE Options = PureBasic 6.11 LTS (Windows - x64)
+; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; CursorPosition = 4
-; Folding = w
+; FirstLine = 105
+; Folding = y
 ; Optimizer
 ; EnableXP
 ; HideErrorLog

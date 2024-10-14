@@ -9,27 +9,19 @@
 
 Global Window_0
 
-Global Text_0, Text_0_Copy1, Text_0_Copy1_Copy1, Combo_0, Text_2
+Global Text_0
 
 Enumeration FormGadget
-  #horas_trabajadas
-  #antiguedad
-  #boton_consulta
+  #texto_ingresado
+  #boton_analizar
 EndEnumeration
 
 
-Procedure OpenWindow_0(x = 0, y = 0, width = 470, height = 280)
+Procedure OpenWindow_0(x = 0, y = 0, width = 590, height = 440)
   Window_0 = OpenWindow(#PB_Any, x, y, width, height, "", #PB_Window_SystemMenu)
-  Text_0 = TextGadget(#PB_Any, 80, 80, 110, 25, "Horas trabajadas")
-  StringGadget(#horas_trabajadas, 200, 80, 130, 25, "", #PB_String_Numeric)
-  Text_0_Copy1 = TextGadget(#PB_Any, 80, 120, 110, 25, "Antiguedad")
-  StringGadget(#antiguedad, 200, 120, 130, 25, "", #PB_String_Numeric)
-  Text_0_Copy1_Copy1 = TextGadget(#PB_Any, 80, 160, 110, 25, "Presentismo")
-  Combo_0 = ComboBoxGadget(#PB_Any, 210, 160, 110, 25)
-  AddGadgetItem(Combo_0, -1, "No")
-  AddGadgetItem(Combo_0, -1, "Si", 0, 1)
-  ButtonGadget(#boton_consulta, 250, 230, 140, 25, "Generar Consulta")
-  Text_2 = TextGadget(#PB_Any, 110, 20, 200, 25, "Calculo de Sueldo", #PB_Text_Center)
+  EditorGadget(#texto_ingresado, 30, 40, 530, 310)
+  ButtonGadget(#boton_analizar, 200, 370, 200, 25, "Analizar")
+  Text_0 = TextGadget(#PB_Any, 110, 10, 370, 25, "Ingrese un texto para analizarlo")
 EndProcedure
 
 Procedure Window_0_Events(event)

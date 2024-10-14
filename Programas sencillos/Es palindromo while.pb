@@ -17,9 +17,9 @@ If cadena_invertida=cadena
 Else
   MessageRequester("Mensaje","La cadena NO es un palindromo")
 EndIf 
-
+cadena_invertida=""
 Until cadena="salir"
 ; IDE Options = PureBasic 6.10 LTS (Windows - x64)
-; CursorPosition = 12
+; CursorPosition = 19
 ; EnableXP
 ; HideErrorLog
