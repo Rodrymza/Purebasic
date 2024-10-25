@@ -90,7 +90,7 @@ Until event = #PB_Event_CloseWindow
 
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 12
+; CursorPosition = 49
 ; FirstLine = 3
 ; Folding = 9
 ; EnableXP
