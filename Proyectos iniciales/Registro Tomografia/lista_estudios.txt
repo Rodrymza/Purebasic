@@ -1,0 +1,12 @@
+Cerebro
+Cuello
+Senos Paranasales
+Torax
+Abdomen
+Pelvis
+Columna Cervical
+Columna Dorsal
+Columna Lumbosacra
+Puncion
+Miembro Inferior
+Miembro Superior
