@@ -16,13 +16,14 @@ Enumeration
   #campo_fecha
   #campo_diagnostico
   #campo_medico
+  #lista_contraste
   
   #campo_comentarios
-
-  #campo_sala
-  #lista_estudiosuno
-  #lista_estudiosdos
   #fuente_principal
+  #campo_sala
+  #estudios_cabeza
+  #estudios_torso
+  #estudios_columna
   #boton_guardar
   #boton_limpiar
   #boton_cancelar
@@ -38,7 +39,17 @@ user.s = "rodry" : pass.s = "rodry1234"
 tabla_tecnicos.s = "tecnicos"
 tabla_registros.s = "registro_pacientes"
 
-Procedure leer_asignar_lista(List lista.s(), archivo.s, ordenar = 1)
+Procedure asignar_a_gadget(combobox, List lista.s())
+  
+  ClearGadgetItems(combobox)
+  ForEach lista()
+    AddGadgetItem(combobox, -1, lista())
+  Next
+  
+EndProcedure
+
+Procedure leer_asignar_lista(gadget, archivo.s, ordenar = 1)
+  NewList lista.s()
   If ReadFile(0, archivo)
     While Not Eof(0) 
       texto.s =  ReadString(0)
@@ -50,40 +61,64 @@ Procedure leer_asignar_lista(List lista.s(), archivo.s, ordenar = 1)
   If ordenar=1
     SortList(lista(), #PB_Sort_Ascending)
   EndIf 
+  asignar_a_gadget(gadget, lista())
 EndProcedure
 
-Procedure asignar_a_combobox(combobox, List lista.s())
-  
-  ClearGadgetItems(combobox)
-  ForEach lista()
-    AddGadgetItem(combobox, -1, lista())
+Procedure.s leer_estudios()
+  NewList  lista_estudios.s()
+  estudios.s = ""
+  For i=0 To CountGadgetItems(#estudios_cabeza)-1
+          
+    If GetGadgetItemState(#estudios_cabeza, i)
+      AddElement(lista_estudios())
+      lista_estudios() = GetGadgetItemText(#estudios_cabeza, i)
+    EndIf   
   Next
   
-EndProcedure
-
-Procedure.s leer_estudios(gadget)
-  estudios.s = ""
-  For i=0 To CountGadgetItems(gadget)-1
+  For i=0 To CountGadgetItems(#estudios_columna)-1
           
-    If GetGadgetItemState(gadget, i)
-      estudios + GetGadgetItemText(gadget, i) + ", "
+    If GetGadgetItemState(#estudios_columna, i)
+      AddElement(lista_estudios())
+      lista_estudios() = GetGadgetItemText(#estudios_columna, i)
     EndIf 
   Next
-  estudios = Left(estudios, Len(estudios) -2)
+  
+  For i=0 To CountGadgetItems(#estudios_torso)-1
+          
+    If GetGadgetItemState(#estudios_torso, i)
+      AddElement(lista_estudios())
+      lista_estudios() = GetGadgetItemText(#estudios_torso, i)
+    EndIf 
+  Next
+  If ListSize(lista_estudios()) = 1
+    estudios = lista_estudios()
+  Else
+    ForEach lista_estudios()
+      estudios + lista_estudios() + ", "
+    Next
+      estudios = Left(estudios, Len(estudios) -2)
+  EndIf 
+    
   ProcedureReturn estudios
 EndProcedure
 
 Procedure comprobar_region()
   
-   For i=0 To CountGadgetItems(#lista_estudiosuno)-1
+   For i=0 To CountGadgetItems(#estudios_cabeza)-1
           
-     If GetGadgetItemState(#lista_estudiosuno, i)
+     If GetGadgetItemState(#estudios_cabeza, i)
        ProcedureReturn #True 
      EndIf  
    Next
-   For i=0 To CountGadgetItems(#lista_estudiosdos)-1
+   For i=0 To CountGadgetItems(#estudios_columna)-1
           
-     If GetGadgetItemState(#lista_estudiosdos, i)
+     If GetGadgetItemState(#estudios_columna, i)
+       ProcedureReturn #True 
+     EndIf  
+   Next
+   For i=0 To CountGadgetItems(#estudios_torso)-1
+          
+     If GetGadgetItemState(#estudios_torso, i)
        ProcedureReturn #True 
      EndIf  
    Next
@@ -95,30 +130,14 @@ Procedure borrar_campos()
   For i= #campo_dni To #campo_medico
     SetGadgetText(i, "")
   Next
-  For i = 0 To CountGadgetItems(#lista_estudiosuno) -1
-    SetGadgetItemState(#lista_estudiosuno, i, 0)
+  For i = 0 To CountGadgetItems(#estudios_cabeza) -1
+    SetGadgetItemState(#estudios_cabeza, i, 0)
   Next
-    For i = 0 To CountGadgetItems(#lista_estudiosdos) -1
-    SetGadgetItemState(#lista_estudiosdos, i, 0)
+    For i = 0 To CountGadgetItems(#estudios_columna) -1
+    SetGadgetItemState(#estudios_columna, i, 0)
   Next
-  
-EndProcedure
-
-Procedure llenar_lista_estudios()
-  
-  NewList estudios.s()
-  leer_asignar_lista(estudios(), "lista_estudios.txt", 0)
-  FirstElement(estudios())
-  primera_mitad = ListSize(estudios())/2
-  segunda_mitad = ListSize(estudios()) - primera_mitad
-  
-  For i=0 To primera_mitad -1
-    AddGadgetItem(#lista_estudiosuno, -1, estudios())
-    NextElement(estudios())
-  Next
-  For i=0 To segunda_mitad -1
-    AddGadgetItem(#lista_estudiosdos, -1, estudios())
-    NextElement(estudios())
+    For i = 0 To CountGadgetItems(#estudios_torso) -1
+    SetGadgetItemState(#estudios_torso, i, 0)
   Next
   
 EndProcedure
@@ -133,8 +152,7 @@ Procedure adquirir_datos()
   apellido.s = GetGadgetText(#campo_apellido)
   ubicacion.s = GetGadgetText(#lista_ubicacion) + " " + GetGadgetText(#campo_sala)
   
-  regiones.s = leer_estudios(#lista_estudiosuno)
-  regiones + ", " + leer_estudios(#lista_estudiosdos)
+  regiones.s = leer_estudios()
   
   solicitante.s = GetGadgetText(#campo_medico)
   diagnostico.s = GetGadgetText(#campo_diagnostico)
@@ -173,56 +191,62 @@ NewList tecnicos_tarde.s()
 NewList tecnicos_noche.s()
 NewList lista_estudios.s()
 
-OpenWindow(#ventana_principal, 0, 0, 660, 860, "Registro Tomografia", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
+OpenWindow(#ventana_principal, 0, 0, 830, 730, "Registro Tomografia", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
 SetGadgetFont(#PB_Any, FontID(#fuente_principal))
 TextGadget(#PB_Any, 180, 20, 280, 25, "Gestion Ingreso Tomografia")
-PanelGadget(#panel_principal, 10, 60, 630, 780)
+
+PanelGadget(#panel_principal, 10, 60, 810, 660)
 AddGadgetItem(#panel_principal, -1, "Gestion de Ingreso")
-TextGadget(#PB_Any, 40, 28, 130, 25, "Fecha y hora")
-StringGadget(#campo_fecha, 190, 28, 210, 25, "")
+TextGadget(#PB_Any, 30, 28, 130, 25, "Fecha y hora")
+StringGadget(#campo_fecha, 170, 28, 230, 25, "")
 DisableGadget(#campo_fecha, 1)
-TextGadget(#PB_Any, 40, 68, 130, 25, "Seleciona Turno")
-ComboBoxGadget(#lista_turnos, 190, 68, 220, 25)
-TextGadget(#PB_Any, 40, 108, 130, 25, "Tecnico")
-ComboBoxGadget(#lista_tecnicos, 190, 108, 220, 25)
-TextGadget(#PB_Any, 40, 148, 130, 25, "DNI")
-StringGadget(#campo_dni, 190, 148, 380, 25, "", #PB_String_Numeric)
-TextGadget(#PB_Any, 40, 188, 130, 25, "Apellido")
-StringGadget(#campo_apellido, 190, 188, 380, 25, "")
-TextGadget(#PB_Any, 40, 228, 130, 25, "Nombres")
-StringGadget(#campo_nombre, 190, 228, 380, 25, "")
-TextGadget(#PB_Any, 40, 268, 130, 25, "Ubicacion")
-ComboBoxGadget(#lista_ubicacion, 190, 268, 200, 25)
-TextGadget(#PB_Any, 400, 268, 60, 25, "Sala")
-StringGadget(#campo_sala, 470, 268, 100, 25, "")
+TextGadget(#PB_Any, 30, 68, 130, 25, "DNI")
+StringGadget(#campo_dni, 170, 68, 230, 25, "", #PB_String_Numeric)
+TextGadget(#PB_Any, 30, 108, 130, 25, "Apellido")
+StringGadget(#campo_apellido, 170, 108, 230, 25, "")
+TextGadget(#PB_Any, 30, 148, 130, 25, "Nombres")
+StringGadget(#campo_nombre, 170, 148, 230, 25, "")
+TextGadget(#PB_Any, 30, 188, 130, 25, "Ubicacion")
+ComboBoxGadget(#lista_ubicacion, 170, 188, 230, 25)
 AddGadgetItem(#lista_ubicacion, -1, "Internado")
 AddGadgetItem(#lista_ubicacion, -1, "Guardia", 0, 1)
 AddGadgetItem(#lista_ubicacion, -1, "Ambulatorio", 0, 2)
 
-TextGadget(#PB_Any, 40, 308, 130, 25, "Estudios")
-ListIconGadget(#lista_estudiosuno, 40, 338, 260, 190, "Region", 250, #PB_ListIcon_CheckBoxes | #PB_ListIcon_GridLines)
-ListIconGadget(#lista_estudiosdos, 310, 338, 260, 190, "Region", 250, #PB_ListIcon_CheckBoxes | #PB_ListIcon_GridLines)
+TextGadget(#PB_Any, 410, 28, 130, 25, "Seleciona Turno")
+ComboBoxGadget(#lista_turnos, 550, 28, 230, 25)
+TextGadget(#PB_Any, 410, 68, 130, 25, "Tecnico")
+ComboBoxGadget(#lista_tecnicos, 550, 68, 230, 25)
+TextGadget(#PB_Any, 410, 108, 130, 25, "Constraste")
+ComboBoxGadget(#lista_contraste, 550, 108, 230, 25)
+AddGadgetItem(#lista_contraste, -1, "Sin contraste")
+AddGadgetItem(#lista_contraste, -1, "Contraste Oral", 0, 1)
+AddGadgetItem(#lista_contraste, -1, "Contraste EV", 0, 2)
+AddGadgetItem(#lista_contraste, -1, "Contraste Oral y EV", 0, 3)
+TextGadget(#PB_Any, 410, 148, 130, 25, "Solicitante")
+StringGadget(#campo_medico, 550, 148, 230, 25, "")
+TextGadget(#PB_Any, 410, 188, 130, 25, "Sala")
+StringGadget(#campo_sala, 550, 188, 230, 25, "")
 
-TextGadget(#PB_Any, 40, 538, 130, 25, "Solicitante")
-StringGadget(#campo_medico, 190, 538, 380, 25, "")
-TextGadget(#PB_Any, 40, 578, 130, 25, "Diagnostico")
-StringGadget(#campo_diagnostico, 190, 578, 380, 25, "")
-TextGadget(#PB_Any, 40, 618, 130, 50, "Comentarios")
-EditorGadget(#campo_comentarios, 190, 618, 380, 50, #PB_Editor_WordWrap)
-ButtonGadget(#boton_guardar, 420, 688, 160, 40, "Guardar")
-ButtonGadget(#boton_limpiar, 230, 688, 160, 40, "Limpiar")
-ButtonGadget(#boton_cancelar, 40, 688, 160, 40, "Cancelar")
+ListIconGadget(#estudios_cabeza, 20, 248, 250, 190, "Cabeza y cuello", 240, #PB_ListIcon_CheckBoxes | #PB_ListIcon_GridLines)
+ListIconGadget(#estudios_torso, 280, 248, 250, 190, "Torso", 240, #PB_ListIcon_CheckBoxes | #PB_ListIcon_GridLines)
+ListIconGadget(#estudios_columna, 540, 248, 250, 190, "Columna y Extremidades", 240, #PB_ListIcon_CheckBoxes | #PB_ListIcon_GridLines)
+
+TextGadget(#PB_Any, 70, 458, 130, 25, "Diagnostico")
+StringGadget(#campo_diagnostico, 220, 458, 510, 25, "")
+TextGadget(#PB_Any, 70, 498, 130, 50, "Comentarios")
+EditorGadget(#campo_comentarios, 220, 498, 510, 50)
+ButtonGadget(#boton_guardar, 430, 568, 180, 50, "Guardar")
+ButtonGadget(#boton_limpiar, 140, 568, 180, 50, "Limpiar")
 
 AddGadgetItem(#panel_principal, -1, "Lista de pacientes")
 CloseGadgetList()
 AddWindowTimer(#ventana_principal, #reloj, 1000)
 
-leer_asignar_lista(lista_turnos(), "lista_turnos.txt")
-leer_asignar_lista(tecnicos_manana(), "tecnicos_manana.txt")
-leer_asignar_lista(lista_estudios(), "lista_estudios.txt" )
-asignar_a_combobox(#lista_tecnicos, tecnicos_manana())
-asignar_a_combobox(#lista_turnos, lista_turnos())
-llenar_lista_estudios()
+leer_asignar_lista(#lista_turnos, "lista_turnos.txt")
+leer_asignar_lista(#lista_tecnicos, "tecnicos_manana.txt")
+leer_asignar_lista(#estudios_cabeza, "estudios_cabeza.txt" )
+leer_asignar_lista(#estudios_torso, "estudios_torso.txt" )
+leer_asignar_lista(#estudios_columna, "estudios_columna.txt" )
 
 Repeat 
   event = WindowEvent()
@@ -249,6 +273,7 @@ Repeat
           If Not comprobar_campos_vacios() And comprobar_region()
             adquirir_datos()
             MessageRequester("Guardado", "Registro guardado correctamente")
+            borrar_campos()
           EndIf 
           
       EndSelect
@@ -257,8 +282,7 @@ Until event = #PB_Event_CloseWindow
 
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 188
-; FirstLine = 61
-; Folding = A9
+; CursorPosition = 18
+; Folding = w+
 ; EnableXP
 ; HideErrorLog
