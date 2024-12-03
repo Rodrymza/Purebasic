@@ -28,13 +28,16 @@ Enumeration
   #boton_limpiar
   #boton_cancelar
   #reloj
+  #base_datos
 EndEnumeration
 
 LoadFont(#fuente_principal,"Segoe UI", 11)
 texto_auxiliar.s = ""
 UseMySQLDatabase()
 
-dbname.s = "host=localhost port=3306 dbname=gestion_tomografia"
+Global dbname.s = "host=localhost port=3306 dbname=gestion_tomografia" : Global user.s = "rodry" : Global pass.s = "rodry1234"
+
+
 user.s = "rodry" : pass.s = "rodry1234"
 tabla_tecnicos.s = "tecnicos"
 tabla_registros.s = "registro_pacientes"
@@ -142,33 +145,57 @@ Procedure borrar_campos()
   
 EndProcedure
 
+Procedure$ title(palabra$)  ;Formatea el texto a primera letra mayuscula
+  
+  i.l=2
+  r$=UCase(Mid(palabra$,1,1))
+  While i<= Len(palabra$)
+    If Mid(palabra$,i,1)=" "
+      r$=r$+ UCase(Mid(palabra$,i,2))
+      i=i+2
+    Else
+      r$=r$+LCase(Mid(palabra$,i,1))
+      i=i+1
+    EndIf
+  Wend
+  ProcedureReturn r$
+EndProcedure
+
+Procedure.s capitalize(text.s)
+  ProcedureReturn UCase(Mid(text,1,1))+LCase(Mid(text,2,Len(text)))
+EndProcedure
+
 Procedure adquirir_datos()
   
-  fecha.s = GetGadgetText(#campo_fecha)
+  fecha.s = FormatDate("%yyyy-%mm-%dd %hh:%mm:%ss", Date())
   tecnico.s = GetGadgetText(#lista_tecnicos)
-  id.s = GetGadgetText(#campo_dni)
-  apellido.s = GetGadgetText(#campo_apellido)
-  nombre.s = GetGadgetText(#campo_nombre)
-  apellido.s = GetGadgetText(#campo_apellido)
+  contraste.s = GetGadgetText(#campo_comentarios)
+  dni.s = GetGadgetText(#campo_dni)
+  apellido.s = title(GetGadgetText(#campo_apellido))
+  nombre.s =title(GetGadgetText(#campo_nombre))
+  apellido.s = title(GetGadgetText(#campo_apellido))
   ubicacion.s = GetGadgetText(#lista_ubicacion) + " " + GetGadgetText(#campo_sala)
   
   regiones.s = leer_estudios()
   
-  solicitante.s = GetGadgetText(#campo_medico)
-  diagnostico.s = GetGadgetText(#campo_diagnostico)
-  comentarios.s = GetGadgetText(#campo_comentarios)
+  solicitante.s = title(GetGadgetText(#campo_medico))
+  diagnostico.s = capitalize(GetGadgetText(#campo_diagnostico))
+  comentarios.s = capitalize(GetGadgetText(#campo_comentarios))
   
-  Debug fecha
-  Debug tecnico
-  Debug id
-  Debug apellido
-  Debug nombre
-  Debug ubicacion
-  Debug regiones
-  Debug solicitante
-  Debug diagnostico
-  Debug comentarios
-  
+  If OpenDatabase(#base_datos, dbname, user, pass)
+    
+    tabla.s = "INSERT INTO registro_pacientes (fecha, dni, apellido, nombre, ubicacion, region, solicitante, diagnostico, tecnico_asignado, contraste) "
+    valores.s = " VALUES ('" + fecha + "', '" + dni + "', '" + apellido + "', '" + nombre + "', '" + ubicacion + "', '" + regiones + "', '" + solicitante + "', '" + diagnostico + "', '" + tecnico + "', '" + contraste + "')"
+    query.s = tabla + valores
+    
+    If DatabaseUpdate(#base_datos, query)  
+      MessageRequester("Registro guardado", "Registro guardado en la base de datos exitosamente")
+    Else 
+      MessageRequester("Error", "No se pudo guardar el registro en la base de datos")
+    EndIf 
+  Else
+    MessageRequester("Error","No se pudo establecer conexion con la base de datos", #PB_MessageRequester_Error)
+  EndIf 
   
 EndProcedure
 
@@ -183,6 +210,23 @@ Procedure comprobar_campos_vacios()
   
    ProcedureReturn #False 
 EndProcedure
+
+Procedure seleccionar_turno()
+  
+  turno.s = GetGadgetText(#lista_turnos)
+  ClearGadgetItems(#lista_tecnicos)
+  If OpenDatabase(#base_datos, dbname, user, pass)
+    DatabaseQuery(#base_datos, "SELECT * FROM tecnicos where turno='" + turno + "' order by apellido")
+    While NextDatabaseRow(#base_datos) 
+      nombre.s = GetDatabaseString(#base_datos, 1) + ", " + GetDatabaseString(#base_datos, 2)
+      AddGadgetItem(#lista_tecnicos,-1 ,nombre)
+    Wend
+    FinishDatabaseQuery(#base_datos)
+  EndIf 
+    
+EndProcedure
+
+
 
 NewList lista_turnos.s()
 NewList tecnicos_manana.s()
@@ -243,7 +287,6 @@ CloseGadgetList()
 AddWindowTimer(#ventana_principal, #reloj, 1000)
 
 leer_asignar_lista(#lista_turnos, "lista_turnos.txt")
-leer_asignar_lista(#lista_tecnicos, "tecnicos_manana.txt")
 leer_asignar_lista(#estudios_cabeza, "estudios_cabeza.txt" )
 leer_asignar_lista(#estudios_torso, "estudios_torso.txt" )
 leer_asignar_lista(#estudios_columna, "estudios_columna.txt" )
@@ -252,7 +295,7 @@ Repeat
   event = WindowEvent()
   
   If event = #PB_Event_Timer And EventTimer() = #reloj
-    hora$=FormatDate("%dd/%mm/%yyyy - %hh:%ii",Date())
+    hora$=FormatDate("%dd-%mm-%yyyy %hh:%ii",Date())
     SetGadgetText(#campo_fecha,hora$)
   EndIf  
   
@@ -276,13 +319,18 @@ Repeat
             borrar_campos()
           EndIf 
           
+        Case #lista_turnos
+          seleccionar_turno()
+          
+          
       EndSelect
   EndSelect
 Until event = #PB_Event_CloseWindow
 
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 18
-; Folding = w+
+; CursorPosition = 297
+; FirstLine = 137
+; Folding = Ay
 ; EnableXP
 ; HideErrorLog

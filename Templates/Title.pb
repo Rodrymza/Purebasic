@@ -13,7 +13,9 @@
   Wend
   ProcedureReturn r$
 EndProcedure
-; IDE Options = PureBasic 6.11 LTS (Windows - x64)
-; CursorPosition = 14
+
+Debug title("rodrigo eduardo ramirez")
+; IDE Options = PureBasic 6.12 LTS (Windows - x64)
+; CursorPosition = 16
 ; Folding = -
 ; EnableXP
