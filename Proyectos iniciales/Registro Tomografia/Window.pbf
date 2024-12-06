@@ -7,6 +7,8 @@
 ; Event procedures need to be put in another source file.
 ;
 
+Global Text_4, Text_5_Copy1, detalle_tecnico, Text_5, Text_5_Copy1, Text_5_Copy1, Text_5_Copy1_Copy1, Text_5_Copy1_Copy1, Text_5_Copy1_Copy1_Copy1, detalle_diagnostico, Text_5_Copy1_Copy1_Copy1, Text_5_Copy1_Copy1, detalle_estudios, Text_5_Copy1_Copy1_Copy1, detalle_contraste
+
 Enumeration FormWindow
   #ventana_principal
 EndEnumeration
@@ -17,10 +19,6 @@ Enumeration FormGadget
   #PB_Any
   #campo_fecha
   #PB_Any
-  #lista_turnos
-  #PB_Any
-  #lista_tecnicos
-  #PB_Any
   #campo_dni
   #PB_Any
   #campo_apellido
@@ -29,66 +27,135 @@ Enumeration FormGadget
   #PB_Any
   #lista_ubicacion
   #PB_Any
-  #campo_sala
-  #lista_estudiosuno
-  #lista_estudiosdos
+  #lista_turnos
+  #PB_Any
+  #lista_tecnicos
+  #PB_Any
+  #lista_contraste
   #PB_Any
   #campo_medico
+  #PB_Any
+  #campo_sala
+  #estudios_cabeza
+  #estudios_torso
+  #estudios_columna
   #PB_Any
   #campo_diagnostico
   #PB_Any
   #campo_comentarios
   #boton_guardar
   #boton_limpiar
-  #lista_estudiosdos_Copy1
-  #PB_Any_Copy1
-  #lista_contraste
+  #PB_Any
+  #campo_busqueda
+  #boton_busqueda
+  #PB_Any
+  #date_inicio
+  #PB_Any
+  #date_fin
+  #boton_fecha
+  #boton_limpiar_filtro
+  #PB_Any
+  #filtro_tecnico
+  #boton_fecha_hoy
+  #listado_pacientes
+  #detalle_fecha
+  #detalle_apellido
+  #detalle_nombre
+  #detalle_ubicacion
+  #detalle_solicitante
+  #detalle_dni
+  #modificar_detalles
 EndEnumeration
 
 
-Procedure Openventana_principal(x = 0, y = 0, width = 830, height = 730)
+Procedure Openventana_principal(x = 0, y = 0, width = 1010, height = 780)
   OpenWindow(#ventana_principal, x, y, width, height, "Registro Tomografia", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
-  TextGadget(#PB_Any, 180, 20, 280, 25, "Gestion Ingreso Tomografia")
-  PanelGadget(#panel_principal, 10, 60, 810, 660)
+  CreateStatusBar(0, WindowID(#ventana_principal))
+  AddStatusBarField(50)
+  StatusBarText(0, 0, "Label")
+  TextGadget(#PB_Any, 260, 20, 280, 25, "Gestion Ingreso Tomografia")
+  PanelGadget(#panel_principal, 20, 60, 980, 690)
   AddGadgetItem(#panel_principal, -1, "Gestion de Ingreso")
-  TextGadget(#PB_Any, 30, 28, 130, 25, "Fecha y hora")
-  StringGadget(#campo_fecha, 170, 28, 230, 25, "")
+  TextGadget(#PB_Any, 40, 28, 130, 25, "Fecha y hora")
+  StringGadget(#campo_fecha, 180, 28, 290, 25, "")
   DisableGadget(#campo_fecha, 1)
-  TextGadget(#PB_Any, 410, 28, 130, 25, "Seleciona Turno")
-  ComboBoxGadget(#lista_turnos, 550, 28, 230, 25)
-  TextGadget(#PB_Any, 410, 68, 130, 25, "Tecnico")
-  ComboBoxGadget(#lista_tecnicos, 550, 68, 230, 25)
-  TextGadget(#PB_Any, 30, 68, 130, 25, "DNI")
-  StringGadget(#campo_dni, 170, 68, 230, 25, "")
-  TextGadget(#PB_Any, 30, 108, 130, 25, "Apellido")
-  StringGadget(#campo_apellido, 170, 108, 230, 25, "")
-  TextGadget(#PB_Any, 30, 148, 130, 25, "Nombres")
-  StringGadget(#campo_nombre, 170, 148, 230, 25, "")
-  TextGadget(#PB_Any, 30, 188, 130, 25, "Ubicacion")
-  ComboBoxGadget(#lista_ubicacion, 170, 188, 230, 25)
+  TextGadget(#PB_Any, 40, 68, 130, 25, "DNI")
+  StringGadget(#campo_dni, 180, 68, 290, 25, "")
+  TextGadget(#PB_Any, 40, 108, 130, 25, "Apellido")
+  StringGadget(#campo_apellido, 180, 108, 290, 25, "")
+  TextGadget(#PB_Any, 40, 148, 130, 25, "Nombres")
+  StringGadget(#campo_nombre, 180, 148, 290, 25, "")
+  TextGadget(#PB_Any, 40, 188, 130, 25, "Ubicacion")
+  ComboBoxGadget(#lista_ubicacion, 180, 188, 290, 25)
   AddGadgetItem(#lista_ubicacion, -1, "Internado")
   AddGadgetItem(#lista_ubicacion, -1, "Guardia", 0, 1)
   AddGadgetItem(#lista_ubicacion, -1, "Ambulatorio", 0, 2)
-  TextGadget(#PB_Any, 410, 188, 130, 25, "Sala")
-  StringGadget(#campo_sala, 550, 188, 230, 25, "")
-  ListIconGadget(#lista_estudiosuno, 20, 248, 250, 190, "Region", 250, #PB_ListIcon_CheckBoxes | #PB_ListIcon_GridLines)
-  ListIconGadget(#lista_estudiosdos, 280, 248, 250, 190, "Region", 250, #PB_ListIcon_CheckBoxes | #PB_ListIcon_GridLines)
-  TextGadget(#PB_Any, 410, 148, 130, 25, "Solicitante")
-  StringGadget(#campo_medico, 550, 148, 230, 25, "")
-  TextGadget(#PB_Any, 70, 458, 130, 25, "Diagnostico")
-  StringGadget(#campo_diagnostico, 220, 458, 510, 25, "")
-  TextGadget(#PB_Any, 70, 498, 130, 50, "Comentarios")
-  EditorGadget(#campo_comentarios, 220, 498, 510, 50)
-  ButtonGadget(#boton_guardar, 430, 568, 180, 50, "Guardar")
-  ButtonGadget(#boton_limpiar, 140, 568, 180, 50, "Limpiar")
-  ListIconGadget(#lista_estudiosdos_Copy1, 540, 248, 250, 190, "Region", 250, #PB_ListIcon_CheckBoxes | #PB_ListIcon_GridLines)
-  TextGadget(#PB_Any_Copy1, 410, 108, 130, 25, "Constraste")
-  ComboBoxGadget(#lista_contraste, 550, 108, 230, 25)
+  TextGadget(#PB_Any, 500, 28, 130, 25, "Seleciona Turno")
+  ComboBoxGadget(#lista_turnos, 640, 28, 290, 25)
+  TextGadget(#PB_Any, 500, 68, 130, 25, "Tecnico")
+  ComboBoxGadget(#lista_tecnicos, 640, 68, 290, 25)
+  TextGadget(#PB_Any, 500, 108, 130, 25, "Constraste")
+  ComboBoxGadget(#lista_contraste, 640, 108, 290, 25)
   AddGadgetItem(#lista_contraste, -1, "Sin contraste")
   AddGadgetItem(#lista_contraste, -1, "Contraste Oral", 0, 1)
   AddGadgetItem(#lista_contraste, -1, "Contraste EV", 0, 2)
   AddGadgetItem(#lista_contraste, -1, "Contraste Oral y EV", 0, 3)
+  TextGadget(#PB_Any, 500, 148, 130, 25, "Solicitante")
+  StringGadget(#campo_medico, 640, 148, 290, 25, "")
+  TextGadget(#PB_Any, 500, 188, 130, 25, "Sala")
+  StringGadget(#campo_sala, 640, 188, 290, 25, "")
+  ListIconGadget(#estudios_cabeza, 40, 248, 280, 190, "Cabreza y Cuello", 250, #PB_ListIcon_CheckBoxes | #PB_ListIcon_GridLines)
+  ListIconGadget(#estudios_torso, 340, 248, 280, 190, "Torso", 250, #PB_ListIcon_CheckBoxes | #PB_ListIcon_GridLines)
+  ListIconGadget(#estudios_columna, 640, 248, 280, 190, "Columna y Extremidades", 250, #PB_ListIcon_CheckBoxes | #PB_ListIcon_GridLines)
+  TextGadget(#PB_Any, 70, 458, 130, 25, "Diagnostico")
+  StringGadget(#campo_diagnostico, 220, 458, 700, 25, "")
+  TextGadget(#PB_Any, 70, 498, 130, 50, "Comentarios")
+  EditorGadget(#campo_comentarios, 220, 498, 700, 70)
+  ButtonGadget(#boton_guardar, 560, 588, 190, 60, "Guardar")
+  ButtonGadget(#boton_limpiar, 260, 588, 190, 60, "Limpiar")
   AddGadgetItem(#panel_principal, -1, "Lista de pacientes")
+  TextGadget(#PB_Any, 110, 28, 100, 25, "Busqueda")
+  StringGadget(#campo_busqueda, 230, 28, 430, 25, "")
+  ButtonGadget(#boton_busqueda, 690, 28, 150, 25, "Buscar")
+  TextGadget(#PB_Any, 110, 68, 100, 25, "Fecha inicio")
+  DateGadget(#date_inicio, 230, 68, 150, 25, "")
+  TextGadget(#PB_Any, 390, 68, 100, 25, "Fecha fin")
+  DateGadget(#date_fin, 510, 68, 150, 25, "")
+  ButtonGadget(#boton_fecha, 690, 68, 150, 25, "Buscar fecha")
+  ButtonGadget(#boton_limpiar_filtro, 110, 108, 140, 25, "Limpiar Filtros")
+  TextGadget(#PB_Any, 270, 108, 100, 25, "Tecnico")
+  ComboBoxGadget(#filtro_tecnico, 390, 108, 270, 25)
+  ButtonGadget(#boton_fecha_hoy, 690, 108, 150, 25, "Hoy")
+  ListIconGadget(#listado_pacientes, 20, 148, 930, 510, "Nro", 40, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect)
+  AddGadgetColumn(#listado_pacientes, 1, "Fecha", 140)
+  AddGadgetColumn(#listado_pacientes, 2, "Apellido y Nombre", 150)
+  AddGadgetColumn(#listado_pacientes, 3, "DNI", 80)
+  AddGadgetColumn(#listado_pacientes, 4, "Estudios", 250)
+  AddGadgetColumn(#listado_pacientes, 5, "Diagnostico", 150)
+  AddGadgetColumn(#listado_pacientes, 6, "Tecnico", 100)
+  AddGadgetItem(#panel_principal, -1, "Detalles Estudio")
+  Text_4 = TextGadget(#PB_Any, 310, 28, 230, 25, "Detalles Estudio")
+  Text_5_Copy1 = TextGadget(#PB_Any, 480, 278, 120, 25, "Tecnico")
+  detalle_tecnico = StringGadget(#PB_Any, 610, 278, 300, 25, "")
+  Text_5 = TextGadget(#PB_Any, 30, 78, 120, 25, "Fecha")
+  StringGadget(#detalle_fecha, 160, 78, 300, 25, "")
+  Text_5_Copy1 = TextGadget(#PB_Any, 30, 158, 120, 25, "Apellido")
+  StringGadget(#detalle_apellido, 160, 158, 300, 25, "")
+  Text_5_Copy1 = TextGadget(#PB_Any, 30, 198, 120, 25, "Nombre")
+  StringGadget(#detalle_nombre, 160, 198, 300, 25, "")
+  Text_5_Copy1_Copy1 = TextGadget(#PB_Any, 30, 238, 120, 25, "Ubicacion")
+  StringGadget(#detalle_ubicacion, 160, 238, 300, 25, "")
+  Text_5_Copy1_Copy1 = TextGadget(#PB_Any, 480, 318, 120, 25, "Solicitante")
+  StringGadget(#detalle_solicitante, 610, 318, 300, 25, "")
+  Text_5_Copy1_Copy1_Copy1 = TextGadget(#PB_Any, 30, 278, 120, 25, "Diagnostico")
+  detalle_diagnostico = StringGadget(#PB_Any, 160, 278, 300, 25, "")
+  Text_5_Copy1_Copy1_Copy1 = TextGadget(#PB_Any, 30, 118, 120, 25, "DNI")
+  StringGadget(#detalle_dni, 160, 118, 300, 25, "")
+  Text_5_Copy1_Copy1 = TextGadget(#PB_Any, 480, 78, 120, 25, "Estudios")
+  detalle_estudios = ListViewGadget(#PB_Any, 610, 78, 300, 180)
+  Text_5_Copy1_Copy1_Copy1 = TextGadget(#PB_Any, 30, 318, 120, 25, "Contraste")
+  detalle_contraste = StringGadget(#PB_Any, 160, 318, 300, 25, "")
+  ButtonGadget(#modificar_detalles, 640, 398, 150, 40, "Modificar")
   CloseGadgetList()
 EndProcedure
 

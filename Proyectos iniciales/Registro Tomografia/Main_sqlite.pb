@@ -47,9 +47,10 @@ EndEnumeration
 
 LoadFont(#fuente_principal,"Segoe UI", 11)
 texto_auxiliar.s = ""
-UseMySQLDatabase()
 
-Global dbname.s = "host=localhost port=3306 dbname=gestion_tomografia" : Global user.s = "rodry" : Global pass.s = "rodry1234"
+UseSQLiteDatabase()
+
+Global dbname.s = "gestion_tomografia.db" : Global user.s = "" : Global pass.s = ""
 
 
 user.s = "rodry" : pass.s = "rodry1234"
@@ -243,7 +244,6 @@ Procedure comprobar_campos_vacios()
 EndProcedure
 
 Procedure seleccionar_turno()
-  
   turno.s = GetGadgetText(#lista_turnos)
   ClearGadgetItems(#lista_tecnicos)
   If OpenDatabase(#base_datos, dbname, user, pass)
@@ -557,8 +557,8 @@ Until event = #PB_Event_CloseWindow
 
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 74
-; FirstLine = 49
-; Folding = AAg-
+; CursorPosition = 247
+; FirstLine = 67
+; Folding = AQA-
 ; EnableXP
 ; HideErrorLog
