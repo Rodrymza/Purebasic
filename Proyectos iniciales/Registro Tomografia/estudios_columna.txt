@@ -1,6 +1,0 @@
-Columna Cervical
-Columna Dorsal
-Columna Lumbar
-Columna Sacro-coxigea
-Miembro Superior
-Miembro Inferior

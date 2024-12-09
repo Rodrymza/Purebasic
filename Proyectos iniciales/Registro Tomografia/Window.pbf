@@ -7,7 +7,7 @@
 ; Event procedures need to be put in another source file.
 ;
 
-Global Text_4, Text_5_Copy1, detalle_tecnico, Text_5, Text_5_Copy1, Text_5_Copy1, Text_5_Copy1_Copy1, Text_5_Copy1_Copy1, Text_5_Copy1_Copy1_Copy1, detalle_diagnostico, Text_5_Copy1_Copy1_Copy1, Text_5_Copy1_Copy1, detalle_estudios, Text_5_Copy1_Copy1_Copy1, detalle_contraste
+Global Text_4, Text_5_Copy1, detalle_tecnico, Text_5_Copy1, Text_5_Copy1, Text_5_Copy1_Copy1, Text_5_Copy1_Copy1, Text_5_Copy1_Copy1_Copy1, detalle_diagnostico, Text_5_Copy1_Copy1_Copy1, Text_5_Copy1_Copy1, detalle_estudios, Text_5_Copy1_Copy1_Copy1, detalle_contraste, Text_5_Copy1_Copy1_Copy1_Copy1, detalles_comentarios, detalle_comentarios, Button_0, Text_5, detalle_agregar_estudios, Text_5_Copy1_Copy1_Copy1_Copy1_Copy1
 
 Enumeration FormWindow
   #ventana_principal
@@ -58,13 +58,20 @@ Enumeration FormGadget
   #filtro_tecnico
   #boton_fecha_hoy
   #listado_pacientes
-  #detalle_fecha
+  #boton_borrar_estudio
+  #texto_estadistica_tabla
+  #boton_mostrar_detalles
   #detalle_apellido
   #detalle_nombre
   #detalle_ubicacion
   #detalle_solicitante
   #detalle_dni
   #modificar_detalles
+  #detalle_contraste_combo
+  #detalle_fecha
+  #ID
+  #detalle_fecha_Copy1
+  #boton_quitar_estudio
 EndEnumeration
 
 
@@ -126,36 +133,49 @@ Procedure Openventana_principal(x = 0, y = 0, width = 1010, height = 780)
   TextGadget(#PB_Any, 270, 108, 100, 25, "Tecnico")
   ComboBoxGadget(#filtro_tecnico, 390, 108, 270, 25)
   ButtonGadget(#boton_fecha_hoy, 690, 108, 150, 25, "Hoy")
-  ListIconGadget(#listado_pacientes, 20, 148, 930, 510, "Nro", 40, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect)
+  ListIconGadget(#listado_pacientes, 20, 148, 930, 470, "Nro", 40, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect)
   AddGadgetColumn(#listado_pacientes, 1, "Fecha", 140)
   AddGadgetColumn(#listado_pacientes, 2, "Apellido y Nombre", 150)
   AddGadgetColumn(#listado_pacientes, 3, "DNI", 80)
   AddGadgetColumn(#listado_pacientes, 4, "Estudios", 250)
   AddGadgetColumn(#listado_pacientes, 5, "Diagnostico", 150)
   AddGadgetColumn(#listado_pacientes, 6, "Tecnico", 100)
+  ButtonGadget(#boton_borrar_estudio, 740, 628, 200, 25, "Borrar Estudio")
+  TextGadget(#texto_estadistica_tabla, 20, 628, 280, 25, "Total estudios listados: ")
+  ButtonGadget(#boton_mostrar_detalles, 520, 628, 200, 25, "Mostrar Detalles")
   AddGadgetItem(#panel_principal, -1, "Detalles Estudio")
-  Text_4 = TextGadget(#PB_Any, 310, 28, 230, 25, "Detalles Estudio")
-  Text_5_Copy1 = TextGadget(#PB_Any, 480, 278, 120, 25, "Tecnico")
-  detalle_tecnico = StringGadget(#PB_Any, 610, 278, 300, 25, "")
-  Text_5 = TextGadget(#PB_Any, 30, 78, 120, 25, "Fecha")
-  StringGadget(#detalle_fecha, 160, 78, 300, 25, "")
+  Text_4 = TextGadget(#PB_Any, 330, 8, 230, 25, "Detalles Estudio")
+  Text_5_Copy1 = TextGadget(#PB_Any, 480, 78, 120, 25, "Tecnico")
+  detalle_tecnico = StringGadget(#PB_Any, 610, 78, 300, 25, "")
   Text_5_Copy1 = TextGadget(#PB_Any, 30, 158, 120, 25, "Apellido")
   StringGadget(#detalle_apellido, 160, 158, 300, 25, "")
   Text_5_Copy1 = TextGadget(#PB_Any, 30, 198, 120, 25, "Nombre")
   StringGadget(#detalle_nombre, 160, 198, 300, 25, "")
   Text_5_Copy1_Copy1 = TextGadget(#PB_Any, 30, 238, 120, 25, "Ubicacion")
   StringGadget(#detalle_ubicacion, 160, 238, 300, 25, "")
-  Text_5_Copy1_Copy1 = TextGadget(#PB_Any, 480, 318, 120, 25, "Solicitante")
-  StringGadget(#detalle_solicitante, 610, 318, 300, 25, "")
+  Text_5_Copy1_Copy1 = TextGadget(#PB_Any, 30, 368, 120, 25, "Solicitante")
+  StringGadget(#detalle_solicitante, 160, 368, 300, 25, "")
   Text_5_Copy1_Copy1_Copy1 = TextGadget(#PB_Any, 30, 278, 120, 25, "Diagnostico")
-  detalle_diagnostico = StringGadget(#PB_Any, 160, 278, 300, 25, "")
+  detalle_diagnostico = StringGadget(#PB_Any, 160, 278, 300, 70, "")
   Text_5_Copy1_Copy1_Copy1 = TextGadget(#PB_Any, 30, 118, 120, 25, "DNI")
   StringGadget(#detalle_dni, 160, 118, 300, 25, "")
-  Text_5_Copy1_Copy1 = TextGadget(#PB_Any, 480, 78, 120, 25, "Estudios")
-  detalle_estudios = ListViewGadget(#PB_Any, 610, 78, 300, 180)
-  Text_5_Copy1_Copy1_Copy1 = TextGadget(#PB_Any, 30, 318, 120, 25, "Contraste")
-  detalle_contraste = StringGadget(#PB_Any, 160, 318, 300, 25, "")
-  ButtonGadget(#modificar_detalles, 640, 398, 150, 40, "Modificar")
+  Text_5_Copy1_Copy1 = TextGadget(#PB_Any, 480, 118, 120, 25, "Estudios")
+  detalle_estudios = ListViewGadget(#PB_Any, 610, 118, 300, 160)
+  Text_5_Copy1_Copy1_Copy1 = TextGadget(#PB_Any, 30, 408, 120, 25, "Contraste")
+  detalle_contraste = StringGadget(#PB_Any, 160, 408, 300, 25, "")
+  ButtonGadget(#modificar_detalles, 670, 508, 170, 40, "Modificar")
+  Text_5_Copy1_Copy1_Copy1_Copy1 = TextGadget(#PB_Any, 30, 448, 120, 25, "Contraste")
+  ComboBoxGadget(#detalle_contraste_combo, 160, 448, 300, 25)
+  detalles_comentarios = TextGadget(#PB_Any, 480, 288, 120, 25, "Comentarios")
+  detalle_comentarios = StringGadget(#PB_Any, 610, 288, 300, 140, "")
+  Button_0 = ButtonGadget(#PB_Any, 670, 558, 170, 40, "Guardar")
+  Text_5 = TextGadget(#PB_Any, 30, 78, 120, 25, "Fecha")
+  StringGadget(#detalle_fecha, 160, 78, 300, 25, "")
+  TextGadget(#ID, 30, 38, 120, 25, "ID")
+  StringGadget(#detalle_fecha_Copy1, 160, 38, 300, 25, "")
+  detalle_agregar_estudios = ComboBoxGadget(#PB_Any, 160, 488, 300, 25)
+  Text_5_Copy1_Copy1_Copy1_Copy1_Copy1 = TextGadget(#PB_Any, 30, 488, 120, 25, "Estudios")
+  ButtonGadget(#boton_quitar_estudio, 810, 438, 100, 25, "Quitar")
   CloseGadgetList()
 EndProcedure
 

@@ -1,0 +1,26 @@
+Tabla registro pacientes:
+CREATE TABLE "registro_pacientes" (
+	"id_registro"	INTEGER NOT NULL,
+	"fecha"	TEXT,
+	"dni"	TEXT,
+	"apellido"	TEXT,
+	"nombre"	TEXT,
+	"ubicacion"	TEXT,
+	"region"	TEXT,
+	"contraste"	TEXT,
+	"solicitante"	TEXT,
+	"diagnostico"	TEXT,
+	"comentarios"	TEXT,
+	"tecnico_asignado"	TEXT,
+	PRIMARY KEY("id_registro" AUTOINCREMENT)
+)
+
+Tabla técnicos
+CREATE TABLE "tecnicos" (
+	"id"	INTEGER NOT NULL,
+	"apellido"	TEXT,
+	"nombre"	TEXT,
+	"turno"	TEXT,
+	PRIMARY KEY("id" AUTOINCREMENT)
+)
+
