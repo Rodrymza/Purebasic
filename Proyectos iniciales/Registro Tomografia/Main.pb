@@ -7,7 +7,7 @@ Enumeration
   #panel_principal : #lista_turnos : #about_image : #about_ico :#ventana_ayuda
   
   #lista_tecnicos : #campo_dni : #campo_apellido
-  #campo_nombre : #lista_ubicacion : #campo_fecha
+  #campo_nombre : #lista_ubicacion : #campo_fecha : #campo_id
   #campo_diagnostico : #campo_medico : #lista_contraste
   
   #campo_comentarios : #fuente_principal : #campo_sala
@@ -22,7 +22,7 @@ Enumeration
   
   #detalle_tecnico : #detalle_fecha : #detalle_apellido : #modificar_detalles : #detalle_id
   #detalle_nombre : #detalle_ubicacion : #detalle_solicitante : #detalle_guardar : #boton_quitar_estudio
-  #detalle_diagnostico : #detalle_dni: #detalle_estudios : #texto_contraste : #detalle_agregar_estudios
+  #detalle_diagnostico : #detalle_dni: #detalle_estudios : #texto_contraste : #detalle_agregar_estudios : #activar_borrado
   #detalle_contraste : #barra_estado : #detalle_contraste_combo : #detalle_comentarios : #texto_estudios_detalle
 EndEnumeration
 
@@ -37,20 +37,21 @@ Structure datos
 EndStructure
 
 LoadFont(#fuente_principal,"Segoe UI", 11)
-LoadImage(#icono, "tac.ico")
+LoadImage(#icono, "resources\tac.ico")
 texto_auxiliar.s = ""
 ascendente = #True
+oculto = #True
 UseSQLiteDatabase()
 
-Global dbname.s = "gestion_tomografia.db" : Global user.s = "" : Global pass.s = ""
+Global dbname.s = "resources\gestion_tomografia.db" : Global user.s = "" : Global pass.s = ""
 
 Procedure ventana_acercade() ;del menu de ayuda-acerca de
   OpenWindow(#ventana_ayuda, 0, 0, 480, 190, "Acerca de", #PB_Window_ScreenCentered | #PB_Window_SystemMenu)
-  SendMessage_(WindowID(#ventana_ayuda), #WM_SETICON, 0, LoadImage(#about_ico, "about.ico"))
+  SendMessage_(WindowID(#ventana_ayuda), #WM_SETICON, 0, LoadImage(#about_ico, "resources\about.ico"))
   TextGadget(#PB_Any, 30, 50, 260, 25, "Registro pacientes tomografia Hospital Central v1.0")
   TextGadget(#PB_Any, 30, 90, 260, 25, "Rodry Ramirez (c) 2024")
   TextGadget(#PB_Any, 30, 130, 260, 25, "rodrymza@gmail.com")
-  ImageGadget(#PB_Any, 320, 32, 128, 128, LoadImage(#about_image, "medical.ico"))
+  ImageGadget(#PB_Any, 320, 32, 128, 128,  LoadImage(#about_image, "resources\medical.ico"))
   Repeat  
     event=WindowEvent()
     Select Event
@@ -61,8 +62,8 @@ Procedure ventana_acercade() ;del menu de ayuda-acerca de
 EndProcedure
 
 Procedure.b pedir_contrasenia()
-  contrasenia.s = "1234" ;"HCentralTomo_2024"
-  If InputRequester("Contraseña requerida", "Ingrese contraseña de administrador", "", #PB_InputRequester_Password) = contrasenia
+  contrasenia.s = "tomo_central_2024"
+  If InputRequester("Contraseña requerida", "Ingrese contraseña de administrador", "") = contrasenia
     MessageRequester("Atencion","Acceso correcto", #PB_MessageRequester_Ok)
     ProcedureReturn #True
   Else
@@ -99,18 +100,16 @@ Procedure barra_total_estudios()
   
 EndProcedure
 
-Procedure asignar_bd_a_gadget(tablename.s, columna, gadget, filtro.s = "" , orden.s = "", seleccion.s = "*")
-If OpenDatabase(#base_datos, dbname, user, pass)
-  DatabaseQuery(#base_datos, "SELECT " + seleccion + " FROM " + tablename + filtro + orden)
-  Debug "SELECT " + seleccion + " FROM " + tablename + filtro + orden
-  ClearGadgetItems(gadget)
-  While NextDatabaseRow(#base_datos)
-    texto.s = GetDatabaseString(#base_datos, columna)
-    Debug texto
-    AddGadgetItem(gadget, -1, texto)
+Procedure asignar_bd_a_gadget(tablename.s, gadget, filtro.s = "" , orden.s = "", seleccion.s = "*", columna = 0)
+  If OpenDatabase(#base_datos, dbname, user, pass)
+    DatabaseQuery(#base_datos, "SELECT " + seleccion + " FROM " + tablename + filtro + orden)
+    ClearGadgetItems(gadget)
+    While NextDatabaseRow(#base_datos)
+      texto.s = GetDatabaseString(#base_datos, columna)
+      AddGadgetItem(gadget, -1, texto)
     Wend  
-EndIf 
-
+  EndIf 
+  
 EndProcedure
 
 Procedure.s leer_estudios()
@@ -212,7 +211,7 @@ Procedure.s capitalize(text.s)
 EndProcedure
 
 Procedure adquirir_datos()
-  
+  id.s = GetGadgetText(#campo_id)
   fecha.s = FormatDate("%yyyy-%mm-%dd %hh:%ii:%ss", Date())
   tecnico.s = GetGadgetText(#lista_tecnicos) : contraste.s = GetGadgetText(#lista_contraste)
   dni.s = GetGadgetText(#campo_dni)  : nombre.s = title(GetGadgetText(#campo_nombre))
@@ -225,10 +224,10 @@ Procedure adquirir_datos()
   
   If OpenDatabase(#base_datos, dbname, user, pass)
     
-    tabla.s = "INSERT INTO registro_pacientes (fecha, dni, apellido, nombre, ubicacion, region, solicitante, diagnostico, comentarios,tecnico_asignado, contraste) "
-    valores.s = " VALUES ('" + fecha + "', '" + dni + "', '" + apellido + "', '" + nombre + "', '" + ubicacion + "', '" + regiones + "', '" + solicitante + "', '" + diagnostico + "', '"+ comentarios + "', '" + tecnico + "', '" + contraste + "')"
+    tabla.s = "INSERT INTO registro_pacientes (id_registro, fecha, dni, apellido, nombre, ubicacion, region, solicitante, diagnostico, comentarios,tecnico_asignado, contraste) "
+    valores.s = " VALUES ("  + id + ", '" + fecha + "', '" + dni + "', '" + apellido + "', '" + nombre + "', '" + ubicacion + "', '" + regiones + "', '" + solicitante + "', '" + diagnostico + "', '"+ comentarios + "', '" + tecnico + "', '" + contraste + "')"
     query.s = tabla + valores
-    
+    Debug query
     If DatabaseUpdate(#base_datos, query)  
       MessageRequester("Registro guardado", "Registro guardado en la base de datos exitosamente")
     Else 
@@ -251,32 +250,32 @@ Procedure actualizar_base_datos()
   solicitante.s = GetGadgetText(#detalle_solicitante)
   id.s = GetGadgetText(#detalle_id)
   
-    For i= 0 To CountGadgetItems(#detalle_estudios) - 1
-      estudios + GetGadgetItemText(#detalle_estudios, i) + ", "
-    Next
-    estudios = Left(estudios, Len(estudios)-2)
-    If OpenDatabase(#base_datos, dbname, user, pass)
-      query.s = "UPDATE 'registro_pacientes' SET " +
-                "dni = '" + dni + "', " +
-                "apellido = '" + apellido + "', " +
-                "nombre = '" + nombre + "', " +
-                "diagnostico = '" + diagnostico + "', " +
-                "region = '" + estudios + "', " +
-                "comentarios = '" + comentarios + "', " +
-                "solicitante = '" + solicitante + "', " +
-                "ubicacion = '" + ubicacion + "', " +
-                "contraste = '" + contraste + "', " +
-                "tecnico_asignado = '" + tecnico + "' " +
+  For i= 0 To CountGadgetItems(#detalle_estudios) - 1
+    estudios + GetGadgetItemText(#detalle_estudios, i) + ", "
+  Next
+  estudios = Left(estudios, Len(estudios)-2)
+  If OpenDatabase(#base_datos, dbname, user, pass)
+    query.s = "UPDATE 'registro_pacientes' SET " +
+              "dni = '" + dni + "', " +
+              "apellido = '" + apellido + "', " +
+              "nombre = '" + nombre + "', " +
+              "diagnostico = '" + diagnostico + "', " +
+              "region = '" + estudios + "', " +
+              "comentarios = '" + comentarios + "', " +
+              "solicitante = '" + solicitante + "', " +
+              "ubicacion = '" + ubicacion + "', " +
+              "contraste = '" + contraste + "', " +
+              "tecnico_asignado = '" + tecnico + "' " +
               "WHERE id_registro = " + id
-      If DatabaseUpdate(#base_datos, query)
-        MessageRequester("Atencion","Registro actualizado exitosamente", #PB_MessageRequester_Ok)
-      Else 
-        MessageRequester("Error","Error al procesar solicitud de actualizacion", #PB_MessageRequester_Error)
-      EndIf 
-    Else
-      MessageRequester("Error", "Error al conectarse a la base de datos", #PB_MessageRequester_Error)
+    If DatabaseUpdate(#base_datos, query)
+      MessageRequester("Atencion","Registro actualizado exitosamente", #PB_MessageRequester_Ok)
+    Else 
+      MessageRequester("Error","Error al procesar solicitud de actualizacion", #PB_MessageRequester_Error)
     EndIf 
-    
+  Else
+    MessageRequester("Error", "Error al conectarse a la base de datos", #PB_MessageRequester_Error)
+  EndIf 
+  
   
 EndProcedure
 
@@ -289,21 +288,7 @@ Procedure comprobar_campos_vacios()
     EndIf 
   Next
   
-   ProcedureReturn #False 
-EndProcedure
-
-Procedure seleccionar_turno()
-  turno.s = GetGadgetText(#lista_turnos)
-  ClearGadgetItems(#lista_tecnicos)
-  If OpenDatabase(#base_datos, dbname, user, pass)
-    DatabaseQuery(#base_datos, "SELECT * FROM tecnicos where turno='" + turno + "' order by apellido")
-    While NextDatabaseRow(#base_datos) 
-      nombre.s = GetDatabaseString(#base_datos, 1) + ", " + GetDatabaseString(#base_datos, 2)
-      AddGadgetItem(#lista_tecnicos,-1 ,nombre)
-    Wend
-    FinishDatabaseQuery(#base_datos)
-  EndIf 
-    
+  ProcedureReturn #False 
 EndProcedure
 
 Procedure actualizar_lista_pacientes(filtro.s = "")
@@ -334,21 +319,6 @@ Procedure actualizar_lista_pacientes(filtro.s = "")
   EndIf 
 EndProcedure
 
-Procedure llenar_filtro_tecnicos()
-  
-  If OpenDatabase(#base_datos, dbname, user, pass)
-    If DatabaseQuery(#base_datos, "SELECT * FROM tecnicos order by apellido")
-      While NextDatabaseRow(#base_datos)
-        tecnico.s = GetDatabaseString(#base_datos, 1) + ", " + GetDatabaseString(#base_datos, 2)
-        AddGadgetItem(#filtro_tecnico, -1, tecnico)
-      Wend  
-      FinishDatabaseQuery(#base_datos)
-    EndIf 
-  EndIf
-  
-  
-EndProcedure
-
 Procedure filtrar_fecha(fecha_inicio, fecha_fin )
   filtro.s = ""
   busqueda.s = GetGadgetText(#campo_busqueda)
@@ -359,8 +329,7 @@ Procedure filtrar_fecha(fecha_inicio, fecha_fin )
   inicio.s = FormatDate("%yyyy-%mm-%dd" , fecha_inicio)
   fin.s = FormatDate("%yyyy-%mm-%dd" , fecha_fin)
   query.s = " where (fecha between '" + inicio + " 00:00' and '" + fin + " 23:59')" + filtro
-  ;actualizar_lista_pacientes(query)
-  
+  actualizar_lista_pacientes(query)
 EndProcedure
 
 Procedure busqueda(fecha_inicio, fecha_fin)
@@ -377,7 +346,7 @@ Procedure busqueda(fecha_inicio, fecha_fin)
 EndProcedure
 
 Procedure ver_detalle_paciente()
-
+  
   id_paciente.s = GetGadgetText(#listado_pacientes)
   If OpenDatabase(#base_datos, dbname, user, pass)
     If DatabaseQuery(#base_datos, "SELECT * FROM registro_pacientes where id_registro = '" + id_paciente + "'")
@@ -407,7 +376,7 @@ Procedure ver_detalle_paciente()
   SetGadgetText(#detalle_diagnostico, diagnostico)
   SetGadgetText(#detalle_tecnico, tecnico)
   SetGadgetText(#detalle_solicitante, solicitante)
-  SetGadgetText(#detalle_contraste, contraste)
+  SetGadgetText(#detalle_contraste_combo, contraste)
   SetGadgetText(#detalle_comentarios, comentarios)
   
   ClearGadgetItems(#detalle_estudios)
@@ -430,26 +399,12 @@ Procedure desactivar_detalles(desactivar = #True)
   DisableGadget(#detalle_tecnico, desactivar)
   DisableGadget(#detalle_ubicacion, desactivar)
   DisableGadget(#detalle_comentarios, desactivar)
-  DisableGadget(#detalle_contraste, desactivar)
-  HideGadget(#detalle_contraste_combo, desactivar)
-  HideGadget(#detalle_contraste, Bool(Not desactivar))
+  DisableGadget(#detalle_contraste_combo, desactivar)
   DisableGadget(#detalle_guardar, desactivar)
   HideGadget(#detalle_agregar_estudios, desactivar)
   HideGadget(#texto_estudios_detalle, desactivar)
   DisableGadget(#modificar_detalles, Bool(Not desactivar))
   DisableGadget(#boton_quitar_estudio, desactivar)
-EndProcedure
-
-Procedure modificar_detalles() 
-  desactivar_detalles(0)
-  HideGadget(#detalle_contraste, 1) :  HideGadget(#detalle_contraste_combo, 0) :  DisableGadget(#detalle_guardar, 0)
-  contraste.s = GetGadgetText(#detalle_contraste)
-  For i=0 To CountGadgetItems(#detalle_contraste_combo)
-    If GetGadgetItemText(#detalle_contraste_combo, i) = contraste
-      SetGadgetState(#detalle_contraste_combo, i)
-      Break
-    EndIf 
-  Next
 EndProcedure
 
 Procedure mostrar_total_lista()
@@ -479,15 +434,42 @@ Procedure obtener_listado_pacientes(offset, typeof.i, ascendente.b)
   i=0
   ClearGadgetItems(#listado_pacientes)
   ForEach lista_pacientes()
-  AddGadgetItem(#listado_pacientes, -1, Str(lista_pacientes()\numero) + Chr(10) + lista_pacientes()\fecha + Chr(10) + lista_pacientes()\nombre + Chr(10) + lista_pacientes()\dni + Chr(10) + lista_pacientes()\estudios + Chr(10) + lista_pacientes()\diagnostico + Chr(10) + lista_pacientes()\tecnico)
- If i%2=0
+    AddGadgetItem(#listado_pacientes, -1, Str(lista_pacientes()\numero) + Chr(10) + lista_pacientes()\fecha + Chr(10) + lista_pacientes()\nombre + Chr(10) + lista_pacientes()\dni + Chr(10) + lista_pacientes()\estudios + Chr(10) + lista_pacientes()\diagnostico + Chr(10) + lista_pacientes()\tecnico)
+    If i%2=0
       SetGadgetItemColor(#listado_pacientes, i, #PB_Gadget_BackColor, $AACD66)          
     EndIf 
     i+1  
-Next
+  Next
   mostrar_total_lista()
 EndProcedure
-  
+
+Procedure estudio_duplicado(estudio.s)
+  For i = 0 To CountGadgetItems(#detalle_estudios)
+    If   estudio.s = GetGadgetItemText(#detalle_estudios, i)
+      MessageRequester("Atencion","La region ya se encuentra dentro del estudio", #PB_MessageRequester_Warning)
+      ProcedureReturn #True
+    EndIf 
+  Next
+    ProcedureReturn #False  
+EndProcedure
+
+Procedure guardar_registro(detalle.s)
+  fecha.s = FormatDate("%dd-%mm-%yyyy %hh:%ii:%ss", Date())
+  tecnico.s = GetGadgetText(#lista_tecnicos)
+  registro.s = detalle + " - " + tecnico
+  If OpenDatabase(#base_datos, dbname, user, pass)
+    query.s = "INSERT INTO log (fecha, registro) " + 
+              "VALUES ('" + fecha + "', '" + registro + "')"
+    If DatabaseUpdate(#base_datos, query)
+    Else
+      MessageRequester("Error", "Error al guardar log")
+    EndIf 
+    
+  Else
+    MessageRequester("Error","Error al conectarse a la base de datos")
+  EndIf 
+EndProcedure
+
 Procedure ventana_principal()
   
   OpenWindow(#ventana_principal, 0, 0, 1010, 790, "Registro Tomografia", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
@@ -501,10 +483,12 @@ Procedure ventana_principal()
   MenuItem(#acerca_de, "Acerca de")
   
   TextGadget(#PB_Any, 40, 28, 130, 25, "Fecha y hora")
-  StringGadget(#campo_fecha, 180, 28, 290, 25, "")
-  DisableGadget(#campo_fecha, 1)
+  StringGadget(#campo_fecha, 180, 28, 180, 25, "", #PB_String_ReadOnly)
+  TextGadget(#PB_Any, 370, 28, 20, 25, "N°")
+  StringGadget(#campo_id, 400, 28, 70, 25, "", #PB_String_ReadOnly)
+  SetGadgetColor(#campo_id, #PB_Gadget_BackColor, $ADDEFF)
   TextGadget(#PB_Any, 40, 68, 130, 25, "DNI")
-  StringGadget(#campo_dni, 180, 68, 290, 25, "")
+  StringGadget(#campo_dni, 180, 68, 290, 25, "", #PB_String_Numeric)
   TextGadget(#PB_Any, 40, 108, 130, 25, "Apellido")
   StringGadget(#campo_apellido, 180, 108, 290, 25, "")
   TextGadget(#PB_Any, 40, 148, 130, 25, "Nombres")
@@ -533,12 +517,11 @@ Procedure ventana_principal()
   ListIconGadget(#estudios_torso, 340, 248, 280, 190, "Torso", 270, #PB_ListIcon_CheckBoxes | #PB_ListIcon_GridLines)
   ListIconGadget(#estudios_columna, 640, 248, 280, 190, "Columna y Extremidades", 270, #PB_ListIcon_CheckBoxes | #PB_ListIcon_GridLines)
   
-  
   TextGadget(#PB_Any, 70, 458, 130, 25, "Diagnostico")
-  StringGadget(#campo_diagnostico, 220, 458, 700, 25, "")
+  StringGadget(#campo_diagnostico, 220, 458, 700, 25, "") 
+  ButtonGadget(#boton_guardar, 560, 588, 190, 60, "Guardar")
   TextGadget(#PB_Any, 70, 498, 130, 50, "Comentarios")
   EditorGadget(#campo_comentarios, 220, 498, 700, 70)
-  ButtonGadget(#boton_guardar, 560, 588, 190, 60, "Guardar")
   ButtonGadget(#boton_limpiar, 260, 588, 190, 60, "Limpiar")
   
   AddGadgetItem(#panel_principal, 1, "Lista de pacientes")
@@ -563,6 +546,7 @@ Procedure ventana_principal()
   AddGadgetColumn(#listado_pacientes, 5, "Diagnostico", 150)
   AddGadgetColumn(#listado_pacientes, 6, "Tecnico", 100)
   ButtonGadget(#boton_borrar_estudio, 740, 628, 200, 25, "Borrar Estudio")
+  HideGadget(#boton_borrar_estudio, 1)
   TextGadget(#texto_estadistica_tabla, 20, 628, 280, 25, "Total estudios listados: ")
   
   AddGadgetItem(#panel_principal, 2, "Detalles Estudio")
@@ -571,7 +555,7 @@ Procedure ventana_principal()
   StringGadget(#detalle_id, 160, 38, 300, 25, "")
   DisableGadget(#detalle_id, 1)
   TextGadget(#PB_Any, 480, 78, 120, 25, "Tecnico")
-  StringGadget(#detalle_tecnico, 610, 78, 300, 25, "")
+  ComboBoxGadget(#detalle_tecnico, 610, 78, 300, 25)
   TextGadget(#PB_Any, 30, 78, 120, 25, "Fecha")
   StringGadget(#detalle_fecha, 160, 78, 300, 25, "")
   DisableGadget(#detalle_fecha, 1)
@@ -590,9 +574,7 @@ Procedure ventana_principal()
   TextGadget(#PB_Any, 480, 118, 120, 25, "Estudios")
   ListViewGadget(#detalle_estudios, 610, 118, 300, 160)
   TextGadget(#PB_Any, 30, 408, 120, 25, "Contraste")
-  StringGadget(#detalle_contraste, 160, 408, 300, 25, "")
   ComboBoxGadget(#detalle_contraste_combo, 160, 408, 300, 25)
-  HideGadget(#detalle_contraste_combo, 1)
   AddGadgetItem(#detalle_contraste_combo, -1, "Sin Contraste")
   AddGadgetItem(#detalle_contraste_combo, -1, "Contraste Oral", 0, 1)
   AddGadgetItem(#detalle_contraste_combo, -1, "Contraste EV", 0, 2)
@@ -612,18 +594,30 @@ Procedure ventana_principal()
   AddStatusBarField(200)
   AddStatusBarField(200)
   AddWindowTimer(#ventana_principal, #reloj, 1000)
-  
+  AddKeyboardShortcut(#ventana_principal, #PB_Shortcut_F9, #activar_borrado)
+EndProcedure
+
+Procedure asignar_id()
+    DatabaseQuery(#base_datos, "SELECT count(*) FROM registro_pacientes;")
+  While NextDatabaseRow(#base_datos)
+    total =  GetDatabaseLong(#base_datos, 0) + 1
+  Wend  
+  FinishDatabaseQuery(#base_datos)
+  SetGadgetText(#campo_id, Str(total))
+  SetActiveGadget(#campo_dni)
 EndProcedure
 
 Procedure inicializacion()
   ventana_principal()
-  asignar_bd_a_gadget("lista_turnos", 0, #lista_turnos)
-  asignar_bd_a_gadget("estudios", 0, #estudios_cabeza, " where region = 'Cabeza'")
-  asignar_bd_a_gadget("estudios", 0, #estudios_torso, " where region = 'Torso'")
-  asignar_bd_a_gadget("estudios", 0, #estudios_columna, " where region = 'Columna'")
-  asignar_bd_a_gadget("estudios", 0, #detalle_agregar_estudios, "", " order by nombre asc")
+  asignar_bd_a_gadget("lista_turnos", #lista_turnos)
+  asignar_bd_a_gadget("estudios", #estudios_cabeza, " where region = 'Cabeza'")
+  asignar_bd_a_gadget("estudios", #estudios_torso, " where region = 'Torso'")
+  asignar_bd_a_gadget("estudios", #estudios_columna, " where region = 'Columna'")
+  asignar_bd_a_gadget("estudios", #detalle_agregar_estudios, "", " order by nombre asc")
+  asignar_bd_a_gadget("tecnicos", #detalle_tecnico, "", " order by nombre asc", " apellido || ', ' || nombre ")
+  asignar_id()
   actualizar_lista_pacientes()
-  llenar_filtro_tecnicos()
+  asignar_bd_a_gadget("tecnicos", #filtro_tecnico, "", " order by apellido asc ", " apellido || ', ' || nombre ")
   desactivar_detalles()
   barra_total_estudios()
   mostrar_total_lista()
@@ -643,8 +637,7 @@ Repeat
     Case #PB_Event_Gadget
       Select EventGadget()
         Case #lista_ubicacion
-          If GetGadgetState(#lista_ubicacion) = 01. Pasar todos los txt dentro de la base de datos y reestructurar código para que sea todo leído desde ahí
-
+          If GetGadgetState(#lista_ubicacion) = 0
             DisableGadget(#campo_sala, 0)
             SetGadgetText(#campo_sala, texto_auxiliar)
           Else 
@@ -661,10 +654,11 @@ Repeat
             adquirir_datos()
             borrar_campos()
             actualizar_lista_pacientes()
+            asignar_id()
           EndIf 
           
         Case #lista_turnos
-          seleccionar_turno()
+          asignar_bd_a_gadget("tecnicos", #lista_tecnicos, " where turno = '" + GetGadgetText(#lista_turnos) + "' ", " order by apellido asc ", " apellido || ', ' || nombre " )
           
         Case #boton_mes_actual
           SetGadgetState(#date_inicio, Date(Year(Date()),Month(Date()),1,0,0,0))
@@ -721,7 +715,7 @@ Repeat
         Case #modificar_detalles
           If GetGadgetText(#detalle_apellido) <>"" 
             If pedir_contrasenia()
-              modificar_detalles()
+              desactivar_detalles(#False)
               DisableGadget(#modificar_detalles, 1)
             EndIf 
           Else
@@ -729,10 +723,30 @@ Repeat
           EndIf 
           
         Case #boton_borrar_estudio
-             
+          If GetGadgetText(#listado_pacientes) <> ""
+            nombre.s = GetGadgetItemText(#listado_pacientes, GetGadgetState(#listado_pacientes), 2)
+            Debug nombre
+            If pedir_contrasenia()
+              result = MessageRequester("Atencion", "Desea borrar el estudio seleccionado?", #PB_MessageRequester_YesNo)
+              If result = #PB_MessageRequester_Yes
+                If DatabaseUpdate(#base_datos, "DELETE FROM registro_pacientes where id_registro = " + GetGadgetText(#listado_pacientes))
+                  guardar_registro("Estudio (" + nombre + ") borrado")
+                  actualizar_lista_pacientes()
+                  barra_total_estudios()
+                  MessageRequester("Ok","El estudio ha sido borrado con exito")
+                  
+                EndIf 
+              EndIf 
+            Else 
+              MessageRequester("Error", "No seleccionaste ningun estudio")
+            EndIf
+          EndIf 
+          
         Case #detalle_agregar_estudios
           estudio.s = GetGadgetText(#detalle_agregar_estudios)
-          AddGadgetItem(#detalle_estudios, -1, estudio)
+          If Not estudio_duplicado(estudio)
+            AddGadgetItem(#detalle_estudios, -1, estudio)
+          EndIf 
           
         Case #boton_quitar_estudio
           posicion = GetGadgetState(#detalle_estudios)
@@ -744,6 +758,7 @@ Repeat
         Case #detalle_guardar
           actualizar_base_datos()
           actualizar_lista_pacientes()
+          guardar_registro("Paciente modificado: " + GetGadgetText(#detalle_apellido) + ", " + GetGadgetText(#detalle_nombre) + "(id: " + GetGadgetText(#detalle_id) + ")")
           desactivar_detalles()
       EndSelect
     Case #PB_Event_Menu
@@ -751,15 +766,21 @@ Repeat
       Select EventMenu()
         Case #acerca_de
           ventana_acercade()
+        Case #activar_borrado
+          oculto = Bool(Not oculto)
+            HideGadget(#boton_borrar_estudio, oculto)
+         
+          
       EndSelect  
   EndSelect
 Until event = #PB_Event_CloseWindow
 
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 656
-; FirstLine = 118
-; Folding = IAAA-
-; Markers = 64
+; CursorPosition = 45
+; FirstLine = 21
+; Folding = AAAI-
 ; EnableXP
+; UseIcon = resources\tac.ico
+; Executable = C:\Users\Rodrigo\Desktop\Registro TAC\Registro TAC.exe
 ; HideErrorLog

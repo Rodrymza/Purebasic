@@ -1,4 +1,0 @@
-1. Pasar todos los txt dentro de la base de datos y reestructurar código para que sea todo leído desde ahí
-2. Modificación de datos, agregar lista de técnicos en vez de permitir modificación directa
-3. Agregar todos los técnicos a la base de datos
-4. 

@@ -1,0 +1,6 @@
+3. Falta la copia de seguridad de la base de datos en un lugar especifico, se podría configurar dese el menú con contrasenia
+4. Contraseña para cada usuario??? Contraseñas guardadas en base de datos
+
+1. Falta implementar botón borrar
+2. Se podría guardar un log con la modificación y borrado de estudios en la base de datos
+
