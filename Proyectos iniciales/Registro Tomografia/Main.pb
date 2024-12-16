@@ -6,7 +6,7 @@ IncludeFile "funciones.pb"
 
 Enumeration
   #archivo_turnos : #ventana_principal : #icono : #acerca_de : #menu_principal
-  #panel_principal : #lista_turnos : #about_image : #about_ico :#ventana_ayuda : #bd_pacientes
+  #panel_principal : #lista_turnos : #about_image : #about_ico :#ventana_ayuda : #bd_pacientes : #ver_log
   
   #lista_tecnicos : #campo_dni : #campo_apellido
   #campo_nombre : #lista_ubicacion : #campo_fecha : #campo_id
@@ -47,7 +47,7 @@ encontrado = #False
 UseSQLiteDatabase()
 
 
-Global dbname.s = "resources\gestion_tomografia.db" : Global user.s = "" : Global pass.s = "" : backup_dir.s = "resources\backups\"
+Global dbname.s = "resources\gestion_tomografia.db" : Global user.s = "" : Global pass.s = "" : backup_dir.s = "resources\backups\" : contrasenia.s = "tomo_central_2024"
 
 Procedure barra_total_estudios() ;muestra valores en la barra de estado
   If OpenDatabase(#base_datos, dbname, user, pass)
@@ -144,22 +144,6 @@ Procedure comprobar_region() ;comprueba que al menos una region este seleccionad
   Next
   MessageRequester("Error", "Debes elegir al menos una region")
   ProcedureReturn #False 
-EndProcedure
-
-Procedure borrar_campos() ;borra los campos de ingreso de datos
-  For i= #campo_dni To #campo_medico
-    SetGadgetText(i, "")
-  Next
-  For i = 0 To CountGadgetItems(#estudios_cabeza) -1
-    SetGadgetItemState(#estudios_cabeza, i, 0)
-  Next
-  For i = 0 To CountGadgetItems(#estudios_columna) -1
-    SetGadgetItemState(#estudios_columna, i, 0)
-  Next
-  For i = 0 To CountGadgetItems(#estudios_torso) -1
-    SetGadgetItemState(#estudios_torso, i, 0)
-  Next
-  
 EndProcedure
 
 Procedure adquirir_datos() ;adquisicion de datos y guardado en la base de datos
@@ -420,6 +404,9 @@ Procedure ventana_principal()
   MenuTitle("Ayuda")
   MenuItem(#acerca_de, "Acerca de")
   MenuItem(#bd_pacientes, "Pacientes")
+  MenuTitle("Sistema")
+  MenuItem(#ver_log, "Ver log")
+  DisableMenuItem(#menu_principal, #ver_log, 1)
   
   TextGadget(#PB_Any, 40, 28, 130, 25, "Fecha y hora")
   StringGadget(#campo_fecha, 180, 28, 180, 25, "", #PB_String_ReadOnly)
@@ -721,7 +708,7 @@ Repeat
           
         Case #modificar_detalles
           If GetGadgetText(#detalle_apellido) <>"" 
-            If pedir_contrasenia()
+            If pedir_contrasenia(contrasenia)
               desactivar_detalles(#False)
               DisableGadget(#modificar_detalles, 1)
             EndIf 
@@ -730,7 +717,7 @@ Repeat
           EndIf 
           
         Case #boton_borrar_estudio
-          If GetGadgetText(#listado_pacientes) <> "" And pedir_contrasenia()
+          If GetGadgetText(#listado_pacientes) <> "" And pedir_contrasenia(contrasenia)
             borrar_estudio()
           Else 
             MessageRequester("Error", "No seleccionaste ningun estudio")
@@ -761,8 +748,14 @@ Repeat
         Case #acerca_de
           ventana_acercade()
         Case #activar_borrado
-          oculto = Bool(Not oculto)
+          If pedir_contrasenia("RoDrY")
+            oculto = Bool(Not oculto)
             HideGadget(#boton_borrar_estudio, oculto)
+            DisableMenuItem(#menu_principal, #ver_log, oculto)
+          Else
+            guardar_log("Intento de acceso indebido", GetGadgetText(#lista_tecnicos))
+          EndIf 
+        
           Case #bd_pacientes
             base_datos_pacientes(dbname, GetGadgetText(#lista_tecnicos))
 
@@ -772,9 +765,9 @@ Until salir = #True
 
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 610
-; FirstLine = 213
-; Folding = AAE-
+; CursorPosition = 756
+; FirstLine = 351
+; Folding = AAi
 ; EnableXP
 ; UseIcon = resources\tac.ico
 ; Executable = ..\Registro TAC\Registro TAC.exe

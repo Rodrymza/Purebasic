@@ -85,8 +85,7 @@ Procedure ventana_acercade() ;del menu de ayuda-acerca de
   Until event= #PB_Event_CloseWindow
 EndProcedure
 
-Procedure.b pedir_contrasenia() ; pedir contrasenia para ciertas funciones limitadas
-  contrasenia.s = "tomo_central_2024"
+Procedure.b pedir_contrasenia(contrasenia.s) ; pedir contrasenia para ciertas funciones limitadas
   If InputRequester("Contraseña requerida", "Ingrese contraseña de administrador", "") = contrasenia
     ProcedureReturn #True
   Else
@@ -141,7 +140,8 @@ Procedure ventana_modificar_datos(dbname.s, dni.s, tecnico.s)
         If DatabaseUpdate(database, request)
           MessageRequester("OK", "Datos del paciente actualizados")
           guardar_log("Datos del paciente " + documento + " actualizados" , tecnico)
-          
+          CloseWindow(ventana_principal)
+          salir = #True
         Else
           MessageRequester("Error al procesar la solicitiud", DatabaseError())
         EndIf
@@ -151,7 +151,7 @@ Procedure ventana_modificar_datos(dbname.s, dni.s, tecnico.s)
       EndIf 
     EndIf 
     
-  Until event = #PB_Event_CloseWindow
+  Until event = #PB_Event_CloseWindow Or salir = #True
 EndProcedure
 
 Procedure guardar_registro_paciente(dbname.s, dni.s, apellido.s, nombre.s) ; guarda un nuevo paciente en la tabla "pacientes"  
@@ -313,10 +313,25 @@ Macro desactivar_campos_tecnico(desactivar = 1)
   
 EndMacro  
 
+Macro borrar_campos() ;borra los campos de ingreso de datos
+  For i= #campo_dni To #campo_medico
+    SetGadgetText(i, "")
+  Next
+  For i = 0 To CountGadgetItems(#estudios_cabeza) -1
+    SetGadgetItemState(#estudios_cabeza, i, 0)
+  Next
+  For i = 0 To CountGadgetItems(#estudios_columna) -1
+    SetGadgetItemState(#estudios_columna, i, 0)
+  Next
+  For i = 0 To CountGadgetItems(#estudios_torso) -1
+    SetGadgetItemState(#estudios_torso, i, 0)
+  Next
+  
+EndMacro
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 311
-; FirstLine = 4
-; Folding = EA9
+; CursorPosition = 329
+; FirstLine = 12
+; Folding = AA9
 ; EnableXP
 ; HideErrorLog
