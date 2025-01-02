@@ -116,7 +116,6 @@ Next
 SetGadgetState(#filtro_estado,0)
 SetGadgetState(#priority_combo,0)
 
-PanelGadget()
 Repeat 
   event=WindowEvent()
   Select Event
@@ -183,9 +182,9 @@ Repeat
 Until event=#PB_Event_CloseWindow
 
 
-; IDE Options = PureBasic 6.10 LTS (Windows - x64)
+; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; CursorPosition = 118
-; FirstLine = 77
+; FirstLine = 114
 ; Folding = -
 ; EnableXP
 ; HideErrorLog

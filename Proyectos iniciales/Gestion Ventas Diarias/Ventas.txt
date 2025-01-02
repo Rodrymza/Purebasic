@@ -1,2 +1,1 @@
-03:07:57,Vendedor 1,Efectivo,2500
-15:08:39,Rodrigo Ramirez,MercadoPago,4500
+01:12:10,Perez Juan,Credito,900

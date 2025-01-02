@@ -5,14 +5,14 @@
 IncludeFile "funciones.pb"
 
 Enumeration
-  #archivo_turnos : #ventana_principal : #icono : #acerca_de : #menu_principal
-  #panel_principal : #lista_turnos : #about_image : #about_ico :#ventana_ayuda : #bd_pacientes : #ver_log
+  #archivo_turnos : #ventana_principal : #icono : #acerca_de : #menu_principal : #menu_copia
+  #panel_principal : #lista_turnos : #about_image : #about_ico :#ventana_ayuda : #bd_pacientes : #ver_log : #menu_exportar_csv
   
-  #lista_tecnicos : #campo_dni : #campo_apellido
-  #campo_nombre : #lista_ubicacion : #campo_fecha : #campo_id
-  #campo_diagnostico  :  #lista_contraste : #campo_medico
+  #lista_tecnicos : #campo_fecha :#campo_dni :#campo_apellido
+  #campo_nombre : #lista_ubicacion : #campo_id
+  #campo_diagnostico  : #lista_contraste : #campo_comentarios : #campo_medico
   
-  #campo_comentarios : #fuente_principal : #campo_sala
+  #fuente_principal : #campo_sala
   #estudios_cabeza : #estudios_torso : #estudios_columna
   #boton_guardar : #boton_limpiar
   #reloj : #base_datos 
@@ -163,7 +163,7 @@ Procedure adquirir_datos() ;adquisicion de datos y guardado en la base de datos
     tabla.s = "INSERT INTO registro_pacientes (id_registro, fecha, dni, apellido, nombre, ubicacion, region, solicitante, diagnostico, comentarios,tecnico_asignado, contraste) "
     valores.s = " VALUES ("  + id + ", '" + fecha + "', '" + dni + "', '" + apellido + "', '" + nombre + "', '" + ubicacion + "', '" + regiones + "', '" + solicitante + "', '" + diagnostico + "', '"+ comentarios + "', '" + tecnico + "', '" + contraste + "')"
     query.s = tabla + valores
-    Debug query
+    ;Debug query
     If DatabaseUpdate(#base_datos, query) 
       MessageRequester("Registro guardado", "Registro guardado en la base de datos exitosamente")
     Else 
@@ -394,7 +394,7 @@ EndProcedure
 
 Procedure ventana_principal()
   
-  OpenWindow(#ventana_principal, 0, 0, 1010, 790, "Registro Tomografia", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
+  OpenWindow(#ventana_principal, 0, 0, 1010, 810, "Registro Tomografia", #PB_Window_SystemMenu | #PB_Window_ScreenCentered | #PB_Window_MinimizeGadget)
   SendMessage_(WindowID(#ventana_principal), #WM_SETICON, 0, ImageID(#icono))
   SetGadgetFont(#PB_Any, FontID(#fuente_principal))
   TextGadget(#PB_Any, 260, 20, 280, 25, "Gestion Ingreso Tomografia")
@@ -406,6 +406,8 @@ Procedure ventana_principal()
   MenuItem(#bd_pacientes, "Pacientes")
   MenuTitle("Sistema")
   MenuItem(#ver_log, "Ver log")
+  MenuItem(#menu_copia, "Crear backup")
+  MenuItem(#menu_exportar_csv, "Exportar archivo csv")
   DisableMenuItem(#menu_principal, #ver_log, 1)
   
   TextGadget(#PB_Any, 40, 28, 130, 25, "Fecha y hora")
@@ -428,7 +430,7 @@ Procedure ventana_principal()
   ComboBoxGadget(#lista_turnos, 640, 28, 290, 25)
   TextGadget(#PB_Any, 500, 68, 130, 25, "Tecnico")
   ComboBoxGadget(#lista_tecnicos, 640, 68, 290, 25)
-  TextGadget(#PB_Any, 500, 108, 130, 25, "Constraste")
+  TextGadget(#PB_Any, 500, 108, 130, 25, "Contraste")
   ComboBoxGadget(#lista_contraste, 640, 108, 290, 25)
   AddGadgetItem(#lista_contraste, -1, "Sin Contraste")
   AddGadgetItem(#lista_contraste, -1, "Contraste Oral", 0, 1)
@@ -519,7 +521,7 @@ Procedure ventana_principal()
   AddStatusBarField(200)
   AddStatusBarField(200)
   AddStatusBarField(200)
-  AddStatusBarField(200)
+  AddStatusBarField(250)
   AddWindowTimer(#ventana_principal, #reloj, 1000)
   AddKeyboardShortcut(#ventana_principal, #PB_Shortcut_F9, #activar_borrado)
 EndProcedure
@@ -532,7 +534,6 @@ Procedure asignar_id()
       Wend  
       FinishDatabaseQuery(#base_datos)
       SetGadgetText(#campo_id, Str(total))
-      SetActiveGadget(#campo_dni)
     Else
       MessageRequester("Error", DatabaseError())
     EndIf 
@@ -576,21 +577,23 @@ Procedure inicializacion()
   desactivar_detalles()
   barra_total_estudios()
   mostrar_total_lista()
+  
+  SetGadgetState(#lista_ubicacion, 0)
+  SetGadgetState(#lista_contraste, 0)
 EndProcedure
 
 inicializacion()
 Repeat 
   event = WindowEvent()
 
-  
   If event = #PB_Event_Timer And EventTimer() = #reloj
     hora$=FormatDate("%dd-%mm-%yyyy %hh:%ii",Date())
     SetGadgetText(#campo_fecha,hora$)
   EndIf
   
-  If Hour(Date()) % 6 = 0 And Minute(Date()) = 0
+  If Hour(Date()) % 12 = 0 And Minute(Date()) = 0 And Second(Date()) = 0
     crear_backup(dbname, backup_dir)
-    StatusBarText(#barra_estado, 4, "Ultima copia " + FormatDate("%hh:%ii", Date()))
+    StatusBarText(#barra_estado, 4, "Ultima copia " + FormatDate("%hh:%ii:%ss", Date()))
   EndIf 
   
   If event = #PB_Event_CloseWindow
@@ -601,15 +604,10 @@ Repeat
     EndIf 
   EndIf 
   
-  If GetGadgetText(#lista_tecnicos) = ""
-    desactivar_campos_tecnico()
-  Else
-    desactivar_campos_tecnico(0)
-  EndIf 
-  
   Select event 
     Case #PB_Event_Gadget
       Select EventGadget()
+            
         Case #lista_ubicacion
           If GetGadgetState(#lista_ubicacion) = 0
             DisableGadget(#campo_sala, 0)
@@ -623,11 +621,13 @@ Repeat
         Case #boton_limpiar
           borrar_campos()
           asignar_id()
+          DisableGadget(#campo_apellido, 0) : DisableGadget(#campo_nombre, 0)
           
         Case #boton_guardar
           If Not comprobar_campos_vacios() And comprobar_region()
             If Not encontrado 
               guardar_registro_paciente(dbname, GetGadgetText(#campo_dni), title(GetGadgetText(#campo_apellido)), title(GetGadgetText(#campo_nombre)))
+              StatusBarText(#barra_estado, 4, "Nuevo paciente registrado en BD")
             EndIf 
             adquirir_datos()
             borrar_campos()
@@ -644,6 +644,7 @@ Repeat
           SetGadgetState(#date_inicio, Date(Year(Date()),Month(Date()),1,0,0,0))
           filtrar_fecha(GetGadgetState(#date_inicio), GetGadgetState(#date_fin))
           mostrar_total_lista()
+          StatusBarText(#barra_estado, 4, "Mostrando estudios del mes")
           
         Case #boton_busqueda
           If GetGadgetState(#date_inicio) > GetGadgetState(#date_fin)
@@ -652,19 +653,25 @@ Repeat
             busqueda(GetGadgetState(#date_inicio), GetGadgetState(#date_fin))
           EndIf 
           mostrar_total_lista()
+          StatusBarText(#barra_estado, 4, "Mostrando estudios por busqueda")
           
         Case #filtro_tecnico
           filtro.s = " where tecnico_asignado = '" + GetGadgetText(#filtro_tecnico) + "'"
           actualizar_lista_pacientes(filtro)
           mostrar_total_lista()
+          StatusBarText(#barra_estado, 4, "Tecnico: " + StringField(GetGadgetText(#filtro_tecnico), 1, ","))
           
         Case #boton_fecha_hoy
           filtrar_fecha(Date(), Date())
           mostrar_total_lista()
+          StatusBarText(#barra_estado, 4, "Mostrando estudios de hoy")
           
         Case #boton_limpiar_filtro
           actualizar_lista_pacientes()
           mostrar_total_lista()
+          SetGadgetText(#campo_busqueda, "")
+          StatusBarText(#barra_estado, 4, "Mostrando total de estudios")
+          SetGadgetState(#filtro_tecnico, -1)
           
         Case #campo_dni
           If EventType() = #PB_EventType_LostFocus
@@ -755,20 +762,29 @@ Repeat
           Else
             guardar_log("Intento de acceso indebido", GetGadgetText(#lista_tecnicos))
           EndIf 
-        
-          Case #bd_pacientes
-            base_datos_pacientes(dbname, GetGadgetText(#lista_tecnicos))
-
+          
+        Case #bd_pacientes
+          base_datos_pacientes(dbname, GetGadgetText(#lista_tecnicos))
+          
+        Case #ver_log
+          ventana_log()
+          
+        Case #menu_copia
+          crear_backup(dbname, backup_dir)
+          StatusBarText(#barra_estado, 4, "Ultima copia " + FormatDate("%hh:%ii:%ss", Date()))
+          
+        Case #menu_exportar_csv
+          exportar_csv()
       EndSelect  
   EndSelect
 Until salir = #True
 
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 756
-; FirstLine = 351
-; Folding = AAi
+; CursorPosition = 776
+; FirstLine = 361
+; Folding = hB9
 ; EnableXP
 ; UseIcon = resources\tac.ico
-; Executable = ..\Registro TAC\Registro TAC.exe
+; Executable = C:\Users\Rodrigo\Desktop\Registro_pacientes\Registro TAC.exe
 ; HideErrorLog

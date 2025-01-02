@@ -7,14 +7,18 @@
 ; Event procedures need to be put in another source file.
 ;
 
-Global Window_0
+Global Window_1
 
-Global Text_0, ListIcon_0, boton_buscar, campo_busqueda, Text_1
+Global lista_registro
 
 
+Procedure OpenWindow_1(x = 0, y = 0, width = 680, height = 410)
+  Window_1 = OpenWindow(#PB_Any, x, y, width, height, "", #PB_Window_SystemMenu)
+  lista_registro = ListIconGadget(#PB_Any, 20, 30, 640, 370, "Fecha", 170)
+  AddGadgetColumn(lista_registro, 1, "Registro", 450)
 EndProcedure
 
-Procedure Window_0_Events(event)
+Procedure Window_1_Events(event)
   Select event
     Case #PB_Event_CloseWindow
       ProcedureReturn #False

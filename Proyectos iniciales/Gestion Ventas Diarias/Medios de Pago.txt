@@ -1,5 +1,5 @@
-Efectivo
-Debito
 Credito
+Debito
+Efectivo
 MercadoPago
-Naranja X
+Transferencia

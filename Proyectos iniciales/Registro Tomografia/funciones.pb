@@ -160,9 +160,9 @@ Procedure guardar_registro_paciente(dbname.s, dni.s, apellido.s, nombre.s) ; gua
                 dni + "', '" + 
                 apellido + "', '" +
                 nombre + "')"
-    Debug request
+    ;Debug request
     If DatabaseUpdate(0, request)
-      MessageRequester("OK","Registro de paciente guardado satisfactoriamente")
+      ;MessageRequester("OK","Registro de paciente guardado satisfactoriamente")
     Else
       MessageRequester("Error",DatabaseError())
     EndIf
@@ -183,7 +183,6 @@ Procedure.b buscar_registro_paciente(dbname.s, dni.s) ;buscar un paciente por dn
         If GetDatabaseLong(0, 0) > 0
           retorno = #True
         Else
-          FinishDatabaseQuery(0)
           retorno =  #False
         EndIf
       Wend
@@ -219,9 +218,10 @@ Procedure autocompletar_datos(dbname.s, dni.s, gadget_apellido, gadget_nombre) ;
   
 EndProcedure
 
-Procedure llenar_listado_pacientes(dbname.s, gadget)
+Procedure llenar_listado_pacientes(dbname.s, gadget, request.s = "SELECT * FROM pacientes order by apellido asc") ; llenar listado de ventana pacientes con todos los registros
+  ClearGadgetItems(gadget)
   If OpenDatabase(0, dbname, "", "")
-    If DatabaseQuery(0, "SELECT * FROM pacientes")
+    If DatabaseQuery(0, request)
       While NextDatabaseRow(0)
         dni.s = GetDatabaseString(0, 0)
         apellido.s = GetDatabaseString(0, 1)
@@ -242,41 +242,9 @@ Procedure llenar_listado_pacientes(dbname.s, gadget)
   EndIf 
 EndProcedure
 
-Procedure base_datos_pacientes(dbname.s, tecnico.s) ; ventana para ver total de pacientes en la base de datos (mas funcionalidades a implementar)
-  i = 0
-  ventana_pacientes = OpenWindow(#PB_Any, 0, 0, 600, 530, "Registro de pacientes", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
-  TextGadget(#PB_Any, 10, 10, 580, 25, "Base de datos pacientes", #PB_Text_Center)
-  lista_pacientes = ListIconGadget(#PB_Any, 20, 70, 560, 450, "DNI", 150, #PB_ListIcon_FullRowSelect)
-  AddGadgetColumn(lista_pacientes, 1, "Apellido", 200)
-  AddGadgetColumn(lista_pacientes, 2, "Nombre", 200)
-  
-  llenar_listado_pacientes(dbname, lista_pacientes)
-  
- Repeat 
-    event = WindowEvent()
-    If event = #PB_Event_CloseWindow
-      CloseWindow(ventana_pacientes)
-    EndIf 
-    If event = #PB_Event_Gadget And EventGadget() = lista_pacientes And EventType() = #PB_EventType_LeftDoubleClick
-      ventana_modificar_datos(dbname, GetGadgetText(lista_pacientes), tecnico)
-      ClearGadgetItems(lista_pacientes)
-      llenar_listado_pacientes(dbname, lista_pacientes)
-      EndIf 
-  Until event = #PB_Event_CloseWindow
-EndProcedure
-
-Procedure estudio_duplicado(estudio.s, gadget)
-  For i = 0 To CountGadgetItems(gadget)
-    If   estudio.s = GetGadgetItemText(gadget, i)
-      MessageRequester("Atencion","La region ya se encuentra dentro del estudio", #PB_MessageRequester_Warning)
-      ProcedureReturn #True
-    EndIf 
-  Next
-    ProcedureReturn #False  
-  EndProcedure
-  
  Procedure asignar_bd_a_gadget(dbname.s, tablename.s, gadget, filtro.s = "" , orden.s = "", seleccion.s = "*", columna = 0) ;asigna valores de un base de datos a un gadget
-  If OpenDatabase(0, dbname, "", "")
+  ; Debug "SELECT " + seleccion + " FROM " + tablename + filtro + orden
+   If OpenDatabase(0, dbname, "", "")
     If DatabaseQuery(0, "SELECT " + seleccion + " FROM " + tablename + filtro + orden)
       ClearGadgetItems(gadget)
       While NextDatabaseRow(0)
@@ -294,29 +262,81 @@ Procedure estudio_duplicado(estudio.s, gadget)
   
 EndProcedure
 
-Macro desactivar_campos_tecnico(desactivar = 1)
-  DisableGadget(#campo_apellido, desactivar)
-  DisableMenuItem(#menu_principal ,#bd_pacientes, desactivar)
-  DisableGadget(#campo_nombre, desactivar)
-  DisableGadget(#estudios_cabeza, desactivar)
-  DisableGadget(#estudios_columna, desactivar)
-  DisableGadget(#lista_contraste, desactivar)
-  DisableGadget(#estudios_torso, desactivar)
-  DisableGadget(#campo_diagnostico, desactivar)
-  DisableGadget(#campo_medico, desactivar)
-  DisableGadget(#boton_guardar, desactivar)
-  DisableGadget(#boton_limpiar, desactivar)
-  DisableGadget(#campo_dni, desactivar)
-  DisableGadget(#campo_sala, desactivar)
-  DisableGadget(#lista_ubicacion, desactivar)
-  DisableGadget(#campo_comentarios, desactivar)  
+Procedure base_datos_pacientes(dbname.s, tecnico.s) ; ventana para ver total de pacientes en la base de datos (mas funcionalidades a implementar)
+  i = 0
+  dbname.s = "resources\gestion_tomografia.db"
+  ventana_pacientes = OpenWindow(#PB_Any, 0, 0, 600, 530, "Registro de pacientes", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
+  TextGadget(#PB_Any, 10, 10, 580, 25, "Base de datos pacientes", #PB_Text_Center)
+  lista_pacientes = ListIconGadget(#PB_Any, 20, 70, 560, 450, "DNI", 150, #PB_ListIcon_FullRowSelect)
+  AddGadgetColumn(lista_pacientes, 1, "Apellido", 200)
+  AddGadgetColumn(lista_pacientes, 2, "Nombre", 200)
+  boton_buscar = ButtonGadget(#PB_Any, 430, 40, 130, 25, "Buscar")
+  campo_busqueda = StringGadget(#PB_Any, 160, 40, 250, 25, "")
+  TextGadget(#PB_Any, 40, 40, 100, 25, "Busqueda")
   
-EndMacro  
+  llenar_listado_pacientes(dbname, lista_pacientes)
+  
+ Repeat 
+    event = WindowEvent()
+    If event = #PB_Event_CloseWindow
+      CloseWindow(ventana_pacientes)
+    EndIf 
+    If event = #PB_Event_Gadget And EventGadget() = lista_pacientes And EventType() = #PB_EventType_LeftDoubleClick
+      ventana_modificar_datos(dbname, GetGadgetText(lista_pacientes), tecnico)
+      llenar_listado_pacientes(dbname, lista_pacientes)
+    EndIf
+    
+    If event = #PB_Event_Gadget And EventGadget() = boton_buscar
+      request.s = "SELECT dni, apellido, nombre from pacientes where apellido like '%" + GetGadgetText(campo_busqueda) + "%'" + 
+                  " or dni like '" + GetGadgetText(campo_busqueda) + 
+                  "' or nombre like '%" +GetGadgetText(campo_busqueda) +"%' order by apellido asc"
+      llenar_listado_pacientes(dbname, lista_pacientes, request)
+    EndIf 
+    
+    
+  Until event = #PB_Event_CloseWindow
+EndProcedure
+
+Procedure estudio_duplicado(estudio.s, gadget)
+  For i = 0 To CountGadgetItems(gadget)
+    If   estudio.s = GetGadgetItemText(gadget, i)
+      MessageRequester("Atencion","La region ya se encuentra dentro del estudio", #PB_MessageRequester_Warning)
+      ProcedureReturn #True
+    EndIf 
+  Next
+    ProcedureReturn #False  
+  EndProcedure
+  
+  Macro desactivar_campos_tecnico(encontrado, desactivar = 1)
+    If Not encontrado
+      DisableGadget(#campo_apellido, desactivar)
+      DisableGadget(#campo_nombre, desactivar)
+    EndIf 
+    
+    DisableMenuItem(#menu_principal ,#bd_pacientes, desactivar)
+    DisableGadget(#estudios_cabeza, desactivar)
+    DisableGadget(#estudios_columna, desactivar)
+    DisableGadget(#lista_contraste, desactivar)
+    DisableGadget(#estudios_torso, desactivar)
+    DisableGadget(#campo_diagnostico, desactivar)
+    DisableGadget(#campo_medico, desactivar)
+    DisableGadget(#boton_guardar, desactivar)
+    DisableGadget(#boton_limpiar, desactivar)
+    DisableGadget(#campo_dni, desactivar)
+    DisableGadget(#campo_sala, desactivar)
+    DisableGadget(#lista_ubicacion, desactivar)
+    DisableGadget(#campo_comentarios, desactivar)  
+  EndMacro  
 
 Macro borrar_campos() ;borra los campos de ingreso de datos
-  For i= #campo_dni To #campo_medico
-    SetGadgetText(i, "")
-  Next
+    SetGadgetText(#campo_dni, "")
+    SetGadgetText(#campo_apellido, "")
+    SetGadgetText(#campo_nombre, "")
+    SetGadgetText(#campo_medico, "")
+    SetGadgetText(#campo_sala, "")
+    SetGadgetText(#campo_diagnostico, "")
+    SetGadgetText(#campo_comentarios, "")
+
   For i = 0 To CountGadgetItems(#estudios_cabeza) -1
     SetGadgetItemState(#estudios_cabeza, i, 0)
   Next
@@ -326,12 +346,81 @@ Macro borrar_campos() ;borra los campos de ingreso de datos
   For i = 0 To CountGadgetItems(#estudios_torso) -1
     SetGadgetItemState(#estudios_torso, i, 0)
   Next
+  SetGadgetState(#lista_contraste, 0)
+  SetGadgetState(#lista_ubicacion, 0)
+EndMacro
+
+Macro ventana_log()
+  
+  ventana_log = OpenWindow(#PB_Any, 0, 0, 680, 410, "", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
+  lista_registro = ListIconGadget(#PB_Any, 20, 20, 640, 370, "Fecha", 170 , #PB_ListIcon_FullRowSelect)
+  AddGadgetColumn(lista_registro, 1, "Registro", 450)
+  i = 0
+  If OpenDatabase(database, "resources\gestion_tomografia.db", "", "")
+    If DatabaseQuery(database, "SELECT fecha, registro FROM log ORDER BY fecha desc")
+      While NextDatabaseRow(database)
+        fecha.s = GetDatabaseString(database, 0)
+        registro.s = GetDatabaseString(database, 1)
+        AddGadgetItem(lista_registro, -1, fecha + Chr(10) + registro)
+        If i%2 = 0
+          SetGadgetItemColor(lista_registro, i, #PB_Gadget_BackColor, $CDCD79)
+        EndIf 
+        i + 1
+      Wend  
+      FinishDatabaseQuery(database)
+    EndIf 
+    CloseDatabase(#PB_All)
+  EndIf 
+  
+  Repeat 
+    event = WindowEvent()
+    If event = #PB_Event_CloseWindow
+      CloseWindow(ventana_log)
+    EndIf 
+    
+    Until event = #PB_Event_CloseWindow
+  
+EndMacro
+
+Macro exportar_csv()
+  
+  If OpenDatabase(basedatos, "resources/gestion_tomografia.db", "", "")
+    
+    If DatabaseQuery(basedatos, "SELECT * FROM registro_pacientes ORDER BY fecha desc")
+      linea.s = "ID;Fecha;DNI;Apellido;Nombre;Ubicacion;Regiones;Contraste;Solicitante;Diagnostico;Comentarios;Tecnico" + Chr(10)
+      While NextDatabaseRow(basedatos)
+        For i = 0 To 11
+          linea + GetDatabaseString(basedatos, i) + ";"
+        Next
+        linea + Chr(10)
+      Wend
+      path.s = SaveFileRequester("Seleccione ubicacion del archivo", "base_datos.csv", "CSV file (*.csv)",0)
+      If path 
+        If GetExtensionPart(path) <> "csv"
+          path + ".csv"
+        EndIf 
+        
+        CreateFile(archivo, path)
+        WriteString(archivo, linea)
+        CloseFile(archivo)
+        MessageRequester("Exportacion exitosa", "Archivo exportado satisfactoriamente en: " + path)
+      Else
+        MessageRequester("Cancelado","Exportacion cancelada")
+      EndIf 
+      
+    Else
+      MessageRequester("Error en la query", DatabaseError(), #PB_MessageRequester_Error)
+    EndIf 
+    CloseDatabase(basedatos)
+  Else
+    MessageRequester("Error", "Error al conectarse a la base de datos: " + DatabaseError(), #PB_MessageRequester_Error)
+  EndIf 
   
 EndMacro
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 329
-; FirstLine = 12
-; Folding = AA9
+; CursorPosition = 401
+; FirstLine = 19
+; Folding = AAg-
 ; EnableXP
 ; HideErrorLog

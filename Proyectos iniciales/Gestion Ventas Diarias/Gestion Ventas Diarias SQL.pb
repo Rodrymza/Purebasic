@@ -45,18 +45,22 @@ EndStructure
 NewList lista_ventas.detalles()
 
 
-Procedure leer_vendedores_pagos(vendedor,pago)
-  ClearGadgetItems(vendedor & pago)
+Procedure asignar_db_gadget(gadget, tabla.s,campo.s = "*")
+  request.s = "SELECT " + campo + " FROM " + tabla
   OpenDatabase(#basedatos, dbname, user, pass)
-  DatabaseQuery(#basedatos,"SELECT * FROM medios_pago")
+  DatabaseQuery(#basedatos,request)
   While NextDatabaseRow(#basedatos)
-    AddGadgetItem(pago, -1, GetDatabaseString(#basedatos,0))
+    AddGadgetItem(gadget, -1, GetDatabaseString(#basedatos,0))
   Wend  
-  OpenDatabase(#basedatos, dbname, user, pass)
-  DatabaseQuery(#basedatos, "SELECT * FROM vendedores")
-  While NextDatabaseRow(#basedatos)
-    AddGadgetItem(vendedor,  -1, GetDatabaseString(#basedatos,1))
-  Wend  
+  
+EndProcedure
+
+Procedure asignar_combo_lista(combobox, List lista.s())
+  
+  For i=0 To CountGadgetItems(combobox) - 1
+    AddElement(lista())
+    lista() = GetGadgetItemText(combobox, i)
+  Next
   
 EndProcedure
 
@@ -68,6 +72,18 @@ Procedure conectarbdd(comandosql.s)
     ProcedureReturn #False
   EndIf   
 EndProcedure
+
+Procedure calcular_total_vendido()
+  If OpenDatabase(basedatos, dbname, user, pass)
+    If DatabaseQuery(basedatos, "SELECT sum(monto) FROM ventas")
+      While NextDatabaseRow(basedatos)
+        SetGadgetText(#container_total, "Total vendido $" + GetDatabaseString(basedatos, 0))
+      Wend  
+    EndIf 
+  EndIf 
+    
+EndProcedure
+
 
 Procedure crear_tablas()
   retorno=1
@@ -121,7 +137,27 @@ Procedure nueva_venta(List listapagos.s(),List listavendedores.s(),List listaven
             listaventas()\pago=GetGadgetText(#combo_medios_de_pago)
             listaventas()\monto=GetGadgetText(#monto)
             ClearGadgetItems(#lista_ventas)
+            request.s = "INSERT INTO ventas (fecha, vendedor, pago, monto) VALUES " + 
+                        "('" + FormatDate("%yyyy-%mm-%dd %hh:%ii:%ss", Date()) + "', '" +
+                        listaventas()\vendedor + "', '" + 
+                        listaventas()\pago + "', " + 
+                        listaventas()\monto + ")"
+            Debug request
+                        
+            If OpenDatabase(basedatos, dbname, user, pass)
+              If DatabaseUpdate(basedatos, request)
+                CloseDatabase(#PB_All)
+              Else 
+                MessageRequester("Error", DatabaseError())
+              EndIf
+              CloseDatabase(#PB_All)
+            Else
+              MessageRequester("Error", DatabaseError())
+            EndIf    
+             
             ForEach listaventas() : AddGadgetItem(#lista_ventas,-1,listaventas()\hora + Chr(10) + listaventas()\vendedor + Chr(10) + listaventas()\pago + Chr(10) +listaventas()\monto + Chr(10)) : Next
+           
+            
             quit=1
             CloseWindow(#ventana_nuevaventa)
         EndSelect
@@ -214,28 +250,28 @@ Procedure guardar_archivo(nombre.s,List lista_parametro.s(),archivo)
   CloseFile(archivo)
 EndProcedure
 
-Procedure leer_archivo(string.s,List lista_parametro.s(),archivo)
-  string=string + ".txt"
-  If ReadFile(archivo,string)
-    While Eof(archivo)=0
-      AddElement(lista_parametro()) : lista_parametro()=ReadString(archivo)
-    Wend
+Procedure actualizar_lista_ventas(request.s = "SELECT fecha, vendedor, pago, monto FROM ventas order by fecha desc" )
+  ClearGadgetItems(#lista_ventas)
+  If OpenDatabase(basedatos, dbname, user, pass)
+    If DatabaseQuery(basedatos, request)
+      While NextDatabaseRow(basedatos)
+        fecha.s = GetDatabaseString(basedatos, 0)
+        vendedor.s = GetDatabaseString(basedatos, 1)
+        pago.s = GetDatabaseString(basedatos, 2)
+        monto.s = GetDatabaseString(basedatos, 3)
+        AddGadgetItem(#lista_ventas, -1, fecha + Chr(10) + vendedor + Chr(10) + pago + Chr(10) + monto)
+      Wend  
+      FinishDatabaseQuery(basedatos)
+    Else
+      MessageRequester("Error", DatabaseError())
+    EndIf 
+    CloseDatabase(#PB_All)
+  Else
+    MessageRequester("Error", DatabaseError())
   EndIf 
-EndProcedure
-
-Procedure leer_archivo_ventas(List ventas.detalles())
-  If ReadFile(#archivo_ventas,ventas$)
-    While Eof(#archivo_ventas)=0
-      string.s=ReadString(#archivo_ventas)
-      AddElement(ventas())
-      ventas()\hora=StringField(string,1,",")
-      ventas()\vendedor=StringField(string,2,",")
-      ventas()\pago=StringField(string,3,",")
-      ventas()\monto=StringField(string,4,",")
-    Wend
-  EndIf
-EndProcedure
-
+  
+  EndProcedure
+  
 Procedure guardar_archivo_ventas(List ventas.detalles())
   CreateFile(#archivo_ventas,ventas$)
   ForEach ventas()
@@ -243,6 +279,15 @@ Procedure guardar_archivo_ventas(List ventas.detalles())
   Next
   CloseFile(#archivo_ventas)
 EndProcedure
+
+Procedure calcular_total_filtrado()
+  total = 0
+  For i = 0 To CountGadgetItems(#lista_ventas) - 1
+    total + Val(GetGadgetItemText(#lista_ventas, i, 3))
+  Next
+  SetGadgetText(#container_filtrado, "Total filtrado $"  + Str(total))
+EndProcedure
+
 
 OpenWindow(#ventana_principal, 0, 0, 600, 690, "Gestion Ventas ", #PB_Window_SystemMenu | #PB_Window_ScreenCentered | #PB_Window_MinimizeGadget)
 TextGadget(#PB_Any, 20, 10, 560, 25, "Gestion Diaria de  Ventas", #PB_Text_Center)
@@ -254,7 +299,7 @@ MenuItem(#pago_predeterminado,"Medio de Pago Predeterminado")
 MenuTitle("Acerca de")
 TextGadget(#PB_Any, 20, 10, 560, 25, "Gestion Diaria de  Ventas", #PB_Text_Center)
 ListIconGadget(#lista_ventas, 20, 80, 560, 470, "Fecha/Hora", 150,#PB_ListIcon_FullRowSelect | #PB_ListIcon_GridLines)
-AddGadgetColumn(#lista_ventas, 1, "Descripcion", 200)
+AddGadgetColumn(#lista_ventas, 1, "Vendedor", 200)
 AddGadgetColumn(#lista_ventas, 2, "Pago", 100)
 AddGadgetColumn(#lista_ventas, 3, "Monto", 100)
 ButtonGadget(#boton_nuevaVenta, 60, 560, 150, 25, "Nueva Venta")
@@ -270,17 +315,21 @@ TextGadget(#PB_Any, 250, 40, 140, 25, "Filtrar por medio de pago")
 TextGadget(#PB_Any, 20, 40, 70, 20, "Vendedor")
 ComboBoxGadget(#combo_vendedor, 100, 35, 130, 25)
 
-leer_vendedores_pagos(#combo_vendedor, #combo_mediosPago)
-;leer_archivo(vendedores_string,vendedores(),#archivo_vendedores)
-;leer_archivo(mediosPago_string,medios_de_pago(),#archivo_mediosDePago)
-leer_archivo_ventas(lista_ventas())
+
+asignar_db_gadget(#combo_mediosPago, "medios_pago")
+asignar_combo_lista(#combo_mediosPago, medios_de_pago())
+asignar_db_gadget(#combo_vendedor, "vendedores", "nombre")
+asignar_combo_lista(#combo_vendedor, vendedores())
 ForEach medios_de_pago() : AddGadgetItem(#combo_mediosPago,-1,medios_de_pago()) : Next : SetGadgetState(#combo_mediosPago,pago_predeterminado)
 ForEach vendedores() : AddGadgetItem(#combo_vendedor,-1,vendedores()) : Next : SetGadgetState(#combo_vendedor,0)
 ForEach lista_ventas() : AddGadgetItem(#lista_ventas,-1,lista_ventas()\hora + Chr(10) + lista_ventas()\vendedor + Chr(10) + lista_ventas()\pago + Chr(10) +lista_ventas()\monto + Chr(10)) : Next
+actualizar_lista_ventas()
+calcular_total_filtrado()
+calcular_total_vendido()
 
-If crear_tablas()
-  MessageRequester("Atencion","Se crearon las tablas necesarias para el sistema", #PB_MessageRequester_Info)
-EndIf   
+;If crear_tablas()
+ ; MessageRequester("Atencion","Se crearon las tablas necesarias para el sistema", #PB_MessageRequester_Info)
+;EndIf   
 
 Repeat
   event = WindowEvent()
@@ -308,8 +357,8 @@ Repeat
   EndSelect
 Until event = #PB_Event_CloseWindow
 
-; IDE Options = PureBasic 6.11 LTS (Windows - x64)
-; CursorPosition = 273
-; FirstLine = 93
-; Folding = B1
+; IDE Options = PureBasic 6.12 LTS (Windows - x64)
+; CursorPosition = 79
+; FirstLine = 58
+; Folding = MA-
 ; EnableXP
