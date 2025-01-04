@@ -1,36 +1,40 @@
 ﻿UseSQLiteDatabase()
 Enumeration
-  #ventana_principal
-  #campo_busqueda
-  #campo_fecha_inicio
-  #campo_fecha_fin
-  #boton_busqueda
-  #boton_limpiar
-  #boton_hoy
-  #listado_registros
-  #campo_fecha
-  #label_dni
-  #campo_dni
-  #campo_apellido
-  #campo_nombre
-  #campo_sala
-  #campo_id
-  #titulo_datos_paciente
-  #campo_diagnostico
-  #campo_contraste
-  #campo_solicitante
-  #campo_tecnico
-  #campo_regiones
-  #campo_comentarios
-  #fuente_principal
+  #ventana_principal : #cambiar_path_bd : #campo_busqueda :  #campo_fecha_inicio
+  #campo_fecha_fin : #boton_busqueda :  #boton_limpiar :  #boton_hoy
+  #listado_registros :  #campo_fecha : #label_dni :  #campo_dni
+  #campo_apellido :  #campo_nombre : #campo_sala :  #campo_id
+  #titulo_datos_paciente :  #campo_diagnostico :  #campo_contraste :  #campo_solicitante
+  #campo_tecnico :  #campo_regiones : #campo_comentarios :  #fuente_principal
 EndEnumeration
-Global dbname.s = "resources/gestion_tomografia.db", user.s = "", pass.s = ""
+
+Global dbname.s = "", user.s = "", pass.s = "", archivo_ini.s = "resources/configuration.ini"
 LoadFont(#fuente_principal,"Segoe UI", 11)
+
+Procedure leer_path_database()
+  
+  If OpenPreferences(archivo_ini)
+    dbname=ReadPreferenceString("database_path", "error")
+    If OpenDatabase(0, dbname, user, pass)
+      MessageRequester("Atencion", "Se conecto correctamente a la base de datos")
+      CloseDatabase(0)
+    Else
+      MessageRequester("Error", "Error al conectarse a la base de datos")
+    EndIf 
+  Else
+    MessageRequester("Error","Error al leer el archivo de configuracion", #PB_MessageRequester_Error)
+  EndIf 
+  
+EndProcedure
+
 
 Macro ventana_principal()
   
   OpenWindow(#ventana_principal, 0, 0, 1366, 768, "Visualizacion de Registros", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
   SetGadgetFont(#PB_Any, FontID(#fuente_principal))
+  CreateMenu(#PB_Any, WindowID(#ventana_principal))
+  MenuTitle("Archivo")
+  MenuItem(#cambiar_path_bd, "Path base de datos")
   TextGadget(#PB_Any, 50, 28, 100, 25, "Busqueda")
   StringGadget(#campo_busqueda, 170, 28, 430, 25, "")
   TextGadget(#PB_Any, 50, 68, 100, 25, "Fecha inicio")
@@ -148,9 +152,26 @@ Procedure llenar_datos_paciente(dni.s)
   
 EndProcedure
 
+Procedure cambiar_path_database()
+  
+  If OpenPreferences(archivo_ini)
+    nuevo_path.s = OpenFileRequester("Selecciona archivo de base de datos","", "Base de datos (*.db) | *.db", 0)
+    WritePreferenceString("database_path", nuevo_path)
+    path.s = ReadPreferenceString("database_path", "error")
+    If path.s <> "error"
+      MessageRequester("Atecion", "Se cambio el path de la base de datos a " + path)
+      dbname = path
+    EndIf 
+    ClosePreferences()
+  EndIf
+  
+EndProcedure
+
 
 ventana_principal()
+leer_path_database()
 llenar_lista_pacientes(#listado_registros)
+
 Repeat  
   event = WindowEvent()
   
@@ -190,14 +211,20 @@ Repeat
                     "WHERE fecha BETWEEN '" + fecha_inicio + " 00:00' And '" + fecha_fin + " 23:59' order by fecha desc"
           llenar_lista_pacientes(#listado_registros, query)
       EndSelect
+    Case #PB_Event_Menu
+      Select EventMenu()
+          Case #cambiar_path_bd
+          cambiar_path_database()
+      EndSelect
+      
   EndSelect
   
   
 Until event = #PB_Event_CloseWindow
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 48
-; FirstLine = 29
-; Folding = -
+; CursorPosition = 17
+; FirstLine = 9
+; Folding = h
 ; EnableXP
 ; HideErrorLog
