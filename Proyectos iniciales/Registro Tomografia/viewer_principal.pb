@@ -1,44 +1,44 @@
 ﻿UseSQLiteDatabase()
 Enumeration
-    #ventana_principal
-    #campo_busqueda
-    #campo_fecha_inicio
-    #campo_fecha_fin
-    #boton_busqueda
-    #boton_limpiar
-    #boton_hoy
-    #listado_registros
-    #campo_fecha
-    #label_dni
-    #campo_dni
-    #campo_apellido
-    #campo_nombre
-    #campo_sala
-    #campo_id
-    #titulo_datos_paciente
-    #label_diagnostico
-    #campo_diagnostico
-    #campo_contraste
-    #campo_solicitante
-    #campo_tecnico
-    #campo_regiones
-    #campo_comentarios
-    #fuente_principal
-  EndEnumeration
-  Global dbname.s = "resources/gestion_tomografia.db", user.s = "", pass.s = ""
-  LoadFont(#fuente_principal,"Segoe UI", 11)
-
+  #ventana_principal
+  #campo_busqueda
+  #campo_fecha_inicio
+  #campo_fecha_fin
+  #boton_busqueda
+  #boton_limpiar
+  #boton_hoy
+  #listado_registros
+  #campo_fecha
+  #label_dni
+  #campo_dni
+  #campo_apellido
+  #campo_nombre
+  #campo_sala
+  #campo_id
+  #titulo_datos_paciente
+  #campo_diagnostico
+  #campo_contraste
+  #campo_solicitante
+  #campo_tecnico
+  #campo_regiones
+  #campo_comentarios
+  #fuente_principal
+EndEnumeration
+Global dbname.s = "resources/gestion_tomografia.db", user.s = "", pass.s = ""
+LoadFont(#fuente_principal,"Segoe UI", 11)
 
 Macro ventana_principal()
   
-  OpenWindow(#ventana_principal, 0, 0, 1366, 768, "Visualizacion de Registros", #PB_Window_SystemMenu)
+  OpenWindow(#ventana_principal, 0, 0, 1366, 768, "Visualizacion de Registros", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
   SetGadgetFont(#PB_Any, FontID(#fuente_principal))
   TextGadget(#PB_Any, 50, 28, 100, 25, "Busqueda")
   StringGadget(#campo_busqueda, 170, 28, 430, 25, "")
   TextGadget(#PB_Any, 50, 68, 100, 25, "Fecha inicio")
-  DateGadget(#campo_fecha_inicio, 170, 68, 150, 25, "", #PB_String_ReadOnly)
+  DateGadget(#campo_fecha_inicio, 170, 68, 150, 25, "")
+  SetGadgetState(#campo_fecha_inicio, Date(2025,01,01,00,00,00))
   TextGadget(#PB_Any, 330, 68, 100, 25, "Fecha fin")
-  DateGadget(#campo_fecha_fin, 450, 68, 150, 25, "", #PB_String_ReadOnly)
+  DateGadget(#campo_fecha_fin, 450, 68, 150, 25)
+  SetGadgetState(#campo_fecha_fin, Date())
   ButtonGadget(#boton_busqueda, 250, 118, 150, 32, "Buscar")
   ButtonGadget(#boton_limpiar, 70, 118, 150, 32, "Limpiar Filtros")
   ButtonGadget(#boton_hoy, 430, 118, 150, 32, "Hoy")
@@ -49,12 +49,15 @@ Macro ventana_principal()
   TextGadget(#titulo_datos_paciente, 730, 20, 620, 25, "Datos del paciente", #PB_Text_Center)
   TextGadget(#PB_Any, 830, 58, 90, 25, "Fecha y hora")
   StringGadget(#campo_fecha, 934, 58, 216, 25, "", #PB_String_ReadOnly)
+  SetGadgetColor(#campo_fecha, #PB_Gadget_BackColor, $D4FF7F)
   TextGadget(#PB_Any, 1164, 58, 20, 25, "N°")
   StringGadget(#campo_id, 1190, 58, 60, 25, "", #PB_String_ReadOnly)
   TextGadget(#PB_Any, 830, 108, 90, 25, "DNI")
   StringGadget(#campo_dni, 934, 108, 316, 25, "", #PB_String_ReadOnly)
+  SetGadgetColor(#campo_dni, #PB_Gadget_BackColor, $D4FF7F)
   TextGadget(#PB_Any, 830, 158, 90, 25, "Apellido")
-  StringGadget(#campo_apellido, 934, 158, 316, 25, "", #PB_String_ReadOnly)
+  StringGadget(#campo_apellido, 934, 158, 316, 25, "", #PB_String_ReadOnly | #PB_String_UpperCase)
+  SetGadgetColor(#campo_apellido, #PB_Gadget_BackColor, $D4FF7F)
   TextGadget(#PB_Any, 830, 208, 90, 25, "Nombres")
   StringGadget(#campo_nombre, 934, 208, 316, 25, "", #PB_String_ReadOnly)
   TextGadget(#PB_Any, 830, 258, 90, 25, "Sala")
@@ -74,9 +77,10 @@ Macro ventana_principal()
   
 EndMacro
 
-Procedure llenar_lista_pacientes(gadget, filtro.s= "")
+Procedure llenar_lista_pacientes(gadget, query.s= "Select * FROM tabla_visualizacion order by fecha desc LIMIT 80")
+  ClearGadgetItems(gadget)
   If OpenDatabase(db, dbname, user, pass)
-    If DatabaseQuery(db, "SELECT * FROM tabla_visualizacion" + filtro)
+    If DatabaseQuery(db, query)
       index = 0
       While NextDatabaseRow(db)
         string.s = ""
@@ -101,7 +105,6 @@ EndProcedure
 
 Procedure llenar_datos_paciente(dni.s)
   query.s = "SELECT * FROM registro_pacientes WHERE dni=" + dni
-  Debug query
    If OpenDatabase(db, dbname, user, pass)
     If DatabaseQuery(db, query)
       
@@ -161,6 +164,31 @@ Repeat
             llenar_datos_paciente(dni)
           EndIf 
           
+        Case #boton_busqueda
+          busqueda.s = GetGadgetText(#campo_busqueda)
+          fecha_inicio.s = FormatDate("%yyyy-%mm-%dd", GetGadgetState(#campo_fecha_inicio))
+          fecha_fin.s = FormatDate("%yyyy-%mm-%dd", GetGadgetState(#campo_fecha_fin))
+          
+          query.s = "SELECT * FROM tabla_visualizacion" +
+                    " WHERE (nombre like '%" + busqueda + "%' or " +
+                    "nombre like '%" + busqueda + "%' or " +
+                    "dni like '%" + busqueda + "%') and" +
+                    " (fecha between '" + fecha_inicio + " 00:00' And '" + fecha_fin + " 23:59') order by fecha desc"
+
+          llenar_lista_pacientes(#listado_registros, query)
+          
+        Case #boton_limpiar
+          SetGadgetState(#campo_fecha_inicio, Date())
+          SetGadgetState(#campo_fecha_inicio, Date(2025,01,01,00,00,00))
+          SetGadgetText(#campo_busqueda, "")
+          llenar_lista_pacientes(#listado_registros)
+          
+        Case #boton_hoy
+          SetGadgetState(#campo_fecha_inicio, Date())
+          SetGadgetState(#campo_fecha_fin, Date())
+          query.s = "SELECT * FROM tabla_visualizacion " +
+                    "WHERE fecha BETWEEN '" + fecha_inicio + " 00:00' And '" + fecha_fin + " 23:59' order by fecha desc"
+          llenar_lista_pacientes(#listado_registros, query)
       EndSelect
   EndSelect
   
@@ -168,8 +196,8 @@ Repeat
 Until event = #PB_Event_CloseWindow
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 54
-; FirstLine = 25
+; CursorPosition = 48
+; FirstLine = 29
 ; Folding = -
 ; EnableXP
 ; HideErrorLog
