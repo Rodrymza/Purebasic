@@ -6,7 +6,7 @@ IncludeFile "funciones.pb"
 
 Enumeration
   #archivo_turnos : #ventana_principal : #icono : #acerca_de : #menu_principal : #menu_copia
-  #panel_principal : #lista_turnos : #about_image : #about_ico :#ventana_ayuda : #bd_pacientes : #ver_log : #menu_exportar_csv
+  #panel_principal : #lista_turnos : #about_image : #about_ico :#ventana_ayuda : #bd_pacientes : #ver_log : #menu_exportar_csv : #menu_exportar_fecha
   
   #lista_tecnicos : #campo_fecha :#campo_dni :#campo_apellido
   #campo_nombre : #lista_ubicacion : #campo_id
@@ -49,40 +49,6 @@ UseSQLiteDatabase()
 
 Global dbname.s = "resources\gestion_tomografia.db" : Global user.s = "" : Global pass.s = "" : backup_dir.s = "resources\backups\" : contrasenia.s = "tomo_central_2024"
 
-Procedure barra_total_estudios() ;muestra valores en la barra de estado
-  If OpenDatabase(#base_datos, dbname, user, pass)
-    hoy.s = FormatDate("%yyyy-%mm-%dd", Date())
-    anio.s = FormatDate("%yyyy", Date())
-    mes.s = FormatDate("%yyyy-%mm", Date())
-    If DatabaseQuery(#base_datos, "SELECT count(*) FROM registro_pacientes where fecha like '" + hoy + "%';")
-      While NextDatabaseRow(#base_datos)
-        total = GetDatabaseLong(#base_datos, 0)
-      Wend  
-      FinishDatabaseQuery(#base_datos)
-      StatusBarText(#barra_estado, 1, "Total estudios de hoy: " + total)
-      
-      DatabaseQuery(#base_datos, "SELECT count(*) FROM registro_pacientes where fecha like '" + anio + "%';")
-      While NextDatabaseRow(#base_datos)
-        total = GetDatabaseLong(#base_datos, 0)
-      Wend  
-      FinishDatabaseQuery(#base_datos)
-      StatusBarText(#barra_estado, 2, "Total estudios del año: " + total)
-      
-      DatabaseQuery(#base_datos, "SELECT count(*) FROM registro_pacientes where fecha like '" + mes + "%';")
-      While NextDatabaseRow(#base_datos)
-        total = GetDatabaseLong(#base_datos, 0)
-      Wend
-      FinishDatabaseQuery(#base_datos)
-    Else
-      MessageRequester("Error", DatabaseError())
-    EndIf
-  Else
-    MessageRequester("Error", DatabaseError()) 
-  EndIf 
-
-  StatusBarText(#barra_estado, 3, "Total estudios del mes: " + total)
-  
-EndProcedure
 
 Procedure.s leer_estudios() ;lee los estudios marcados el las listicon y los guarda en un texto
   NewList  lista_estudios.s()
@@ -242,12 +208,12 @@ Procedure actualizar_lista_pacientes(filtro.s = "") ; actualizacion de gadget li
         nombre.s = GetDatabaseString(#base_datos, 3) + ", " + StringField(GetDatabaseString(#base_datos, 4), 1, " ")
         dni.s = GetDatabaseString(#base_datos, 2)
         estudios.s = GetDatabaseString(#base_datos, 6)
-        tecnico.s = StringField(GetDatabaseString(#base_datos, 11), 1, ",")
+        tecnico.s = StringField(GetDatabaseString(#base_datos, 11), 1, ",") + "," + Mid(StringField(GetDatabaseString(#base_datos, 11), 2, ","), 1, 2) + "."
         diagnostico.s = GetDatabaseString(#base_datos, 9)
         
         AddGadgetItem(#listado_pacientes, -1, nro + Chr(10) + fecha + Chr(10) + nombre + Chr(10) + dni + Chr(10) + estudios + Chr(10) + diagnostico + Chr(10) + tecnico)
         If i%2 = 0
-          SetGadgetItemColor(#listado_pacientes, i, #PB_Gadget_BackColor, $AACD66)          
+          SetGadgetItemColor(#listado_pacientes, i, #PB_Gadget_BackColor, $EEE58E)          
         EndIf 
         i + 1
       Wend 
@@ -329,6 +295,7 @@ Procedure ver_detalle_paciente()
   SetGadgetText(#detalle_comentarios, comentarios)
   
   ClearGadgetItems(#detalle_estudios)
+
   total = CountString(estudios, ",")
   For i=1 To total+1
     AddGadgetItem(#detalle_estudios, -1, StringField(estudios, i,", "))
@@ -408,6 +375,7 @@ Procedure ventana_principal()
   MenuItem(#ver_log, "Ver log")
   MenuItem(#menu_copia, "Crear backup")
   MenuItem(#menu_exportar_csv, "Exportar archivo csv")
+  MenuItem(#menu_exportar_fecha, "Exportar cvs entre fechas")
   DisableMenuItem(#menu_principal, #ver_log, 1)
   
   TextGadget(#PB_Any, 40, 28, 130, 25, "Fecha y hora")
@@ -585,7 +553,7 @@ EndProcedure
 inicializacion()
 Repeat 
   event = WindowEvent()
-
+  
   If event = #PB_Event_Timer And EventTimer() = #reloj
     hora$=FormatDate("%dd-%mm-%yyyy %hh:%ii",Date())
     SetGadgetText(#campo_fecha,hora$)
@@ -607,7 +575,7 @@ Repeat
   Select event 
     Case #PB_Event_Gadget
       Select EventGadget()
-            
+          
         Case #lista_ubicacion
           If GetGadgetState(#lista_ubicacion) = 0
             DisableGadget(#campo_sala, 0)
@@ -775,15 +743,18 @@ Repeat
           
         Case #menu_exportar_csv
           exportar_csv()
+          
+        Case #menu_exportar_fecha
+          date_requester()
       EndSelect  
   EndSelect
 Until salir = #True
 
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 776
-; FirstLine = 361
-; Folding = hB9
+; CursorPosition = 215
+; FirstLine = 48
+; Folding = gAw
 ; EnableXP
 ; UseIcon = resources\tac.ico
 ; Executable = C:\Users\Rodrigo\Desktop\Registro_pacientes\Registro TAC.exe

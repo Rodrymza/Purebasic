@@ -382,11 +382,11 @@ Macro ventana_log()
   
 EndMacro
 
-Macro exportar_csv()
+Procedure exportar_csv(query.s = "SELECT * FROM registro_pacientes ORDER BY fecha desc")
   
   If OpenDatabase(basedatos, "resources/gestion_tomografia.db", "", "")
     
-    If DatabaseQuery(basedatos, "SELECT * FROM registro_pacientes ORDER BY fecha desc")
+    If DatabaseQuery(basedatos, query)
       linea.s = "ID;Fecha;DNI;Apellido;Nombre;Ubicacion;Regiones;Contraste;Solicitante;Diagnostico;Comentarios;Tecnico" + Chr(10)
       While NextDatabaseRow(basedatos)
         For i = 0 To 11
@@ -416,11 +416,76 @@ Macro exportar_csv()
     MessageRequester("Error", "Error al conectarse a la base de datos: " + DatabaseError(), #PB_MessageRequester_Error)
   EndIf 
   
-EndMacro
+EndProcedure
 
+Procedure date_requester()
+  
+  window_date = OpenWindow(#PB_Any, 0, 0, 300, 200, "Selecciona fecha", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
+  fecha_inicio = DateGadget(#PB_Any, 120, 40, 150, 25, "")
+  TextGadget(#PB_Any, 10, 40, 100, 25, "Fecha Inicio")
+  fecha_fin = DateGadget(#PB_Any, 120, 90, 150, 25, "")
+  TextGadget(#PB_Any, 10, 90, 100, 25, "Fecha Inicio")
+  boton_aceptar = ButtonGadget(#PB_Any, 90, 150, 120, 35, "Aceptar")
+  
+  Repeat
+    event = WindowEvent()
+    Select Event
+      Case #PB_Event_CloseWindow
+        CloseWindow(window_date)
+      Case #PB_Event_Gadget
+        Select EventGadget()
+            
+          Case boton_aceptar
+            text_inicio.s = FormatDate("%yyyy-%mm-%dd",GetGadgetState(fecha_inicio)) + " 00:00"
+            text_fin.s = FormatDate("%yyyy-%mm-%dd",GetGadgetState(fecha_fin)) + " 23:59"
+            query.s = "SELECT * FROM registro_pacientes where fecha between '" + text_inicio + "' AND '" + text_fin + "' order by fecha desc"
+            exportar_csv(query)
+            
+        EndSelect
+        
+    EndSelect
+    
+  Until event = #PB_Event_CloseWindow 
+  
+EndProcedure
+
+Macro barra_total_estudios() ;muestra valores en la barra de estado
+  If OpenDatabase(#base_datos, dbname, user, pass)
+    hoy.s = FormatDate("%yyyy-%mm-%dd", Date())
+    anio.s = FormatDate("%yyyy", Date())
+    mes.s = FormatDate("%yyyy-%mm", Date())
+    If DatabaseQuery(#base_datos, "SELECT count(*) FROM registro_pacientes where fecha like '" + hoy + "%';")
+      While NextDatabaseRow(#base_datos)
+        total = GetDatabaseLong(#base_datos, 0)
+      Wend  
+      FinishDatabaseQuery(#base_datos)
+      StatusBarText(#barra_estado, 1, "Total estudios de hoy: " + total)
+      
+      DatabaseQuery(#base_datos, "SELECT count(*) FROM registro_pacientes where fecha like '" + anio + "%';")
+      While NextDatabaseRow(#base_datos)
+        total = GetDatabaseLong(#base_datos, 0)
+      Wend  
+      FinishDatabaseQuery(#base_datos)
+      StatusBarText(#barra_estado, 2, "Total estudios del año: " + total)
+      
+      DatabaseQuery(#base_datos, "SELECT count(*) FROM registro_pacientes where fecha like '" + mes + "%';")
+      While NextDatabaseRow(#base_datos)
+        total = GetDatabaseLong(#base_datos, 0)
+      Wend
+      FinishDatabaseQuery(#base_datos)
+    Else
+      MessageRequester("Error", DatabaseError())
+    EndIf
+  Else
+    MessageRequester("Error", DatabaseError()) 
+  EndIf 
+
+  StatusBarText(#barra_estado, 3, "Total estudios del mes: " + total)
+  
+EndMacro
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 401
-; FirstLine = 19
-; Folding = AAg-
+; CursorPosition = 441
+; FirstLine = 15
+; Folding = AAA0
 ; EnableXP
 ; HideErrorLog

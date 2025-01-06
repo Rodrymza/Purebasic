@@ -1,16 +1,84 @@
 ﻿UseSQLiteDatabase()
+  
 Enumeration
   #ventana_principal : #cambiar_path_bd : #campo_busqueda :  #campo_fecha_inicio
   #campo_fecha_fin : #boton_busqueda :  #boton_limpiar :  #boton_hoy
-  #listado_registros :  #campo_fecha : #label_dni :  #campo_dni
-  #campo_apellido :  #campo_nombre : #campo_sala :  #campo_id
+  #listado_registros :  #campo_fecha : #label_dni :  #campo_dni : #exportar_csv
+  #campo_apellido :  #campo_nombre : #campo_sala :  #campo_id : #menu_actualizar
   #titulo_datos_paciente :  #campo_diagnostico :  #campo_contraste :  #campo_solicitante
-  #campo_tecnico :  #campo_regiones : #campo_comentarios :  #fuente_principal
+  #campo_tecnico :  #campo_regiones : #campo_comentarios :  #fuente_principal : #tecla_intro
 EndEnumeration
 
 Global dbname.s = "", user.s = "", pass.s = "", archivo_ini.s = "resources/configuration.ini"
 LoadFont(#fuente_principal,"Segoe UI", 11)
 
+Procedure exportar_csv(query.s = "SELECT * FROM registro_pacientes ORDER BY fecha desc")
+  
+  If OpenDatabase(basedatos, "resources/gestion_tomografia.db", "", "")
+    
+    If DatabaseQuery(basedatos, query)
+      linea.s = "ID;Fecha;DNI;Apellido;Nombre;Ubicacion;Regiones;Contraste;Solicitante;Diagnostico;Comentarios;Tecnico" + Chr(10)
+      While NextDatabaseRow(basedatos)
+        For i = 0 To 11
+          linea + GetDatabaseString(basedatos, i) + ";"
+        Next
+        linea + Chr(10)
+      Wend
+      path.s = SaveFileRequester("Seleccione ubicacion del archivo", "base_datos.csv", "CSV file (*.csv)",0)
+      If path 
+        If GetExtensionPart(path) <> "csv"
+          path + ".csv"
+        EndIf 
+        
+        CreateFile(archivo, path)
+        WriteString(archivo, linea)
+        CloseFile(archivo)
+        MessageRequester("Exportacion exitosa", "Archivo exportado satisfactoriamente en: " + path)
+      Else
+        MessageRequester("Cancelado","Exportacion cancelada")
+      EndIf 
+      
+    Else
+      MessageRequester("Error en la query", DatabaseError(), #PB_MessageRequester_Error)
+    EndIf 
+    CloseDatabase(basedatos)
+  Else
+    MessageRequester("Error", "Error al conectarse a la base de datos: " + DatabaseError(), #PB_MessageRequester_Error)
+  EndIf 
+  
+EndProcedure
+
+Procedure date_requester()
+  
+  window_date = OpenWindow(#PB_Any, 0, 0, 300, 200, "Selecciona fecha", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
+  fecha_inicio = DateGadget(#PB_Any, 120, 40, 150, 25, "")
+  TextGadget(#PB_Any, 10, 40, 100, 25, "Fecha Inicio")
+  fecha_fin = DateGadget(#PB_Any, 120, 90, 150, 25, "")
+  TextGadget(#PB_Any, 10, 90, 100, 25, "Fecha Inicio")
+  boton_aceptar = ButtonGadget(#PB_Any, 90, 150, 120, 35, "Aceptar")
+  
+  Repeat
+    event = WindowEvent()
+    Select Event
+      Case #PB_Event_CloseWindow
+        CloseWindow(window_date)
+      Case #PB_Event_Gadget
+        Select EventGadget()
+            
+          Case boton_aceptar
+            text_inicio.s = FormatDate("%yyyy-%mm-%dd",GetGadgetState(fecha_inicio)) + " 00:00"
+            text_fin.s = FormatDate("%yyyy-%mm-%dd",GetGadgetState(fecha_fin)) + " 23:59"
+            query.s = "SELECT * FROM registro_pacientes where fecha between '" + text_inicio + "' AND '" + text_fin + "' order by fecha desc"
+            exportar_csv(query)
+            
+        EndSelect
+        
+    EndSelect
+    
+  Until event = #PB_Event_CloseWindow 
+  
+EndProcedure
+  
 Procedure leer_path_database()
   
   If OpenPreferences(archivo_ini)
@@ -27,14 +95,15 @@ Procedure leer_path_database()
   
 EndProcedure
 
-
 Macro ventana_principal()
   
   OpenWindow(#ventana_principal, 0, 0, 1366, 768, "Visualizacion de Registros", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
   SetGadgetFont(#PB_Any, FontID(#fuente_principal))
   CreateMenu(#PB_Any, WindowID(#ventana_principal))
   MenuTitle("Archivo")
+  MenuItem(#menu_actualizar, "Actualizar")
   MenuItem(#cambiar_path_bd, "Path base de datos")
+  MenuItem(#exportar_csv, "Exportar csv")
   TextGadget(#PB_Any, 50, 28, 100, 25, "Busqueda")
   StringGadget(#campo_busqueda, 170, 28, 430, 25, "")
   TextGadget(#PB_Any, 50, 68, 100, 25, "Fecha inicio")
@@ -78,6 +147,7 @@ Macro ventana_principal()
   EditorGadget(#campo_diagnostico, 934, 588, 316, 70, #PB_Editor_ReadOnly | #PB_Editor_WordWrap)
   TextGadget(#PB_Any, 830, 678, 90, 32, "Comentarios")
   EditorGadget(#campo_comentarios, 934, 678, 316, 70, #PB_Editor_ReadOnly | #PB_Editor_WordWrap)
+  AddKeyboardShortcut(#ventana_principal, #PB_Shortcut_Return, #tecla_intro)
   
 EndMacro
 
@@ -167,6 +237,19 @@ Procedure cambiar_path_database()
   
 EndProcedure
 
+Procedure busqueda()
+  busqueda.s = GetGadgetText(#campo_busqueda)
+  fecha_inicio.s = FormatDate("%yyyy-%mm-%dd", GetGadgetState(#campo_fecha_inicio))
+  fecha_fin.s = FormatDate("%yyyy-%mm-%dd", GetGadgetState(#campo_fecha_fin))
+  
+  query.s = "SELECT * FROM tabla_visualizacion" +
+            " WHERE (nombre like '%" + busqueda + "%' or " +
+            "nombre like '%" + busqueda + "%' or " +
+            "dni like '%" + busqueda + "%') and" +
+            " (fecha between '" + fecha_inicio + " 00:00' And '" + fecha_fin + " 23:59') order by fecha desc"
+  
+  llenar_lista_pacientes(#listado_registros, query)
+EndProcedure
 
 ventana_principal()
 leer_path_database()
@@ -180,24 +263,14 @@ Repeat
       Select EventGadget()
           
         Case #listado_registros
-          If EventType() = #PB_EventType_LeftDoubleClick
+          ;If EventType() = #PB_EventType_LeftDoubleClick
             dni.s=GetGadgetItemText(#listado_registros,GetGadgetState(#listado_registros),2)
             llenar_datos_paciente(dni)
-          EndIf 
+          ;EndIf 
           
-        Case #boton_busqueda
-          busqueda.s = GetGadgetText(#campo_busqueda)
-          fecha_inicio.s = FormatDate("%yyyy-%mm-%dd", GetGadgetState(#campo_fecha_inicio))
-          fecha_fin.s = FormatDate("%yyyy-%mm-%dd", GetGadgetState(#campo_fecha_fin))
-          
-          query.s = "SELECT * FROM tabla_visualizacion" +
-                    " WHERE (nombre like '%" + busqueda + "%' or " +
-                    "nombre like '%" + busqueda + "%' or " +
-                    "dni like '%" + busqueda + "%') and" +
-                    " (fecha between '" + fecha_inicio + " 00:00' And '" + fecha_fin + " 23:59') order by fecha desc"
-
-          llenar_lista_pacientes(#listado_registros, query)
-          
+          Case #boton_busqueda
+            busqueda()
+            
         Case #boton_limpiar
           SetGadgetState(#campo_fecha_inicio, Date())
           SetGadgetState(#campo_fecha_inicio, Date(2025,01,01,00,00,00))
@@ -213,8 +286,18 @@ Repeat
       EndSelect
     Case #PB_Event_Menu
       Select EventMenu()
-          Case #cambiar_path_bd
+        Case #cambiar_path_bd
           cambiar_path_database()
+          
+        Case #tecla_intro
+          busqueda()
+          
+        Case #menu_actualizar
+          busqueda()
+          
+        Case #exportar_csv
+          date_requester()
+          
       EndSelect
       
   EndSelect
@@ -223,8 +306,7 @@ Repeat
 Until event = #PB_Event_CloseWindow
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 17
-; FirstLine = 9
-; Folding = h
+; CursorPosition = 244
+; Folding = A9
 ; EnableXP
 ; HideErrorLog
