@@ -97,7 +97,7 @@ EndProcedure
 
 Macro ventana_principal()
   
-  OpenWindow(#ventana_principal, 0, 0, 1366, 768, "Visualizacion de Registros", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
+  OpenWindow(#ventana_principal, 0, 0, 1366, 780, "Visualizacion de Registros", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
   SetGadgetFont(#PB_Any, FontID(#fuente_principal))
   CreateMenu(#PB_Any, WindowID(#ventana_principal))
   MenuTitle("Archivo")
@@ -125,6 +125,7 @@ Macro ventana_principal()
   SetGadgetColor(#campo_fecha, #PB_Gadget_BackColor, $D4FF7F)
   TextGadget(#PB_Any, 1164, 58, 20, 25, "N°")
   StringGadget(#campo_id, 1190, 58, 60, 25, "", #PB_String_ReadOnly)
+  SetGadgetColor(#campo_id, #PB_Gadget_BackColor, $FAFAFF)
   TextGadget(#PB_Any, 830, 108, 90, 25, "DNI")
   StringGadget(#campo_dni, 934, 108, 316, 25, "", #PB_String_ReadOnly)
   SetGadgetColor(#campo_dni, #PB_Gadget_BackColor, $D4FF7F)
@@ -133,14 +134,19 @@ Macro ventana_principal()
   SetGadgetColor(#campo_apellido, #PB_Gadget_BackColor, $D4FF7F)
   TextGadget(#PB_Any, 830, 208, 90, 25, "Nombres")
   StringGadget(#campo_nombre, 934, 208, 316, 25, "", #PB_String_ReadOnly)
+  SetGadgetColor(#campo_nombre, #PB_Gadget_BackColor, $FAFAFF)
   TextGadget(#PB_Any, 830, 258, 90, 25, "Sala")
   StringGadget(#campo_sala, 934, 258, 316, 25, "", #PB_String_ReadOnly)
+  SetGadgetColor(#campo_sala, #PB_Gadget_BackColor, $FAFAFF)
   TextGadget(#PB_Any, 830, 308, 90, 25, "Contraste")
   StringGadget(#campo_contraste, 934, 308, 316, 25, "", #PB_String_ReadOnly)
+  SetGadgetColor(#campo_contraste, #PB_Gadget_BackColor, $FAFAFF)
   TextGadget(#PB_Any, 830, 358, 90, 25, "Solicitante")
   StringGadget(#campo_solicitante, 934, 358, 316, 25, "", #PB_String_ReadOnly)
+  SetGadgetColor(#campo_solicitante, #PB_Gadget_BackColor, $FAFAFF)
   TextGadget(#PB_Any, 830, 408, 90, 25, "Tecnico")
   StringGadget(#campo_tecnico, 934, 408, 316, 25, "", #PB_String_ReadOnly)
+  SetGadgetColor(#campo_tecnico, #PB_Gadget_BackColor, $FAFAFF)
   TextGadget(#PB_Any, 830, 458, 90, 32, "Regiones")
   EditorGadget(#campo_regiones, 934, 458, 316, 102, #PB_Editor_ReadOnly | #PB_Editor_WordWrap)
   TextGadget(#PB_Any, 830, 588, 90, 32, "Diagnostico")
@@ -306,7 +312,8 @@ Repeat
 Until event = #PB_Event_CloseWindow
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 244
-; Folding = A9
+; CursorPosition = 99
+; FirstLine = 12
+; Folding = I+
 ; EnableXP
 ; HideErrorLog

@@ -17,9 +17,9 @@ EndProcedure
 
 Procedure crear_backup(ruta_original.s, ruta_copia.s)
   borrado = #False  
-  nombre_backup.s = ruta_copia + "backup-" + FormatDate("%yyyy-%mm-%dd %hh_%ii_%ss", Date()) + ".db"
+  nombre_backup.s = "backup-" + FormatDate("%yyyy-%mm-%dd %hh_%ii_%ss", Date()) + ".db"
   If CopyFile(ruta_original, nombre_backup)
-    guardar_log("Copia de seguridad" + nombre_backup, "Sistema")
+    guardar_log("Copia de seguridad " + nombre_backup, "Sistema")
   Else 
     guardar_log("Error en la copia de seguridad", "Sistema")
   EndIf
@@ -36,16 +36,11 @@ Procedure crear_backup(ruta_original.s, ruta_copia.s)
   EndIf 
   SortList(copias(), #PB_Sort_Ascending)
   
-  While ListSize(copias()) > 15
+  While ListSize(copias()) > 10
     FirstElement(copias())
-    borrado = #True
     DeleteFile(copias())
     DeleteElement(copias())
   Wend  
-  
-  If borrado
-    guardar_log("Borrado de archivos antiguos", "Sistema")
-  EndIf 
   
 EndProcedure
 
@@ -484,8 +479,8 @@ Macro barra_total_estudios() ;muestra valores en la barra de estado
   
 EndMacro
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 441
-; FirstLine = 15
-; Folding = AAA0
+; CursorPosition = 19
+; Folding = CAA9
 ; EnableXP
+; Executable = C:\Users\Rodrigo\Desktop\Registro_pacientes\Registro TAC.exe
 ; HideErrorLog
