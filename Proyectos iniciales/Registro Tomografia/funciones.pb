@@ -16,7 +16,6 @@
 EndProcedure
 
 Procedure crear_backup(ruta_original.s, ruta_copia.s)
-  borrado = #False  
   nombre_backup.s = "backup-" + FormatDate("%yyyy-%mm-%dd %hh_%ii_%ss", Date()) + ".db"
   If CopyFile(ruta_original, nombre_backup)
     guardar_log("Copia de seguridad " + nombre_backup, "Sistema")
@@ -479,7 +478,7 @@ Macro barra_total_estudios() ;muestra valores en la barra de estado
   
 EndMacro
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 19
+; CursorPosition = 20
 ; Folding = CAA9
 ; EnableXP
 ; Executable = C:\Users\Rodrigo\Desktop\Registro_pacientes\Registro TAC.exe

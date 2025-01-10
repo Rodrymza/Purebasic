@@ -7,7 +7,7 @@
 ; Event procedures need to be put in another source file.
 ;
 
-Global Text_4, Text_5_Copy1, detalle_tecnico, Text_5_Copy1, Text_5_Copy1, Text_5_Copy1_Copy1, Text_5_Copy1_Copy1, Text_5_Copy1_Copy1_Copy1, detalle_diagnostico, Text_5_Copy1_Copy1_Copy1, Text_5_Copy1_Copy1, detalle_estudios, Text_5_Copy1_Copy1_Copy1, detalle_contraste, Text_5_Copy1_Copy1_Copy1_Copy1, detalles_comentarios, detalle_comentarios, Button_0, Text_5, detalle_agregar_estudios, Text_5_Copy1_Copy1_Copy1_Copy1_Copy1
+Global Text_4, Text_5_Copy1, detalle_tecnico, Text_5_Copy1, Text_5_Copy1, Text_5_Copy1_Copy1, Text_5_Copy1_Copy1, Text_5_Copy1_Copy1_Copy1, detalle_diagnostico, Text_5_Copy1_Copy1_Copy1, Text_5_Copy1_Copy1, detalle_estudios, Text_5_Copy1_Copy1_Copy1, detalle_contraste, Text_5_Copy1_Copy1_Copy1_Copy1, detalles_comentarios, detalle_comentarios, Button_0, Text_5, detalle_agregar_estudios, Text_5_Copy1_Copy1_Copy1_Copy1_Copy1, Editor_0, Editor_1
 
 Enumeration FormWindow
   #ventana_principal
@@ -180,6 +180,9 @@ Procedure Openventana_principal(x = 0, y = 0, width = 1010, height = 780)
   detalle_agregar_estudios = ComboBoxGadget(#PB_Any, 160, 488, 300, 25)
   Text_5_Copy1_Copy1_Copy1_Copy1_Copy1 = TextGadget(#PB_Any, 30, 488, 120, 25, "Estudios")
   ButtonGadget(#boton_quitar_estudio, 810, 438, 100, 25, "Quitar")
+  AddGadgetItem(#panel_principal, -1, "Libro Novedades")
+  Editor_0 = EditorGadget(#PB_Any, 10, 8, 950, 420)
+  Editor_1 = EditorGadget(#PB_Any, 10, 468, 950, 150)
   CloseGadgetList()
 EndProcedure
 

@@ -559,10 +559,13 @@ Repeat
     SetGadgetText(#campo_fecha,hora$)
   EndIf
   
-  If Hour(Date()) % 12 = 0 And Minute(Date()) = 0 And Second(Date()) = 0
-    copiado = #True
-    crear_backup(dbname, backup_dir)
-    StatusBarText(#barra_estado, 4, "Ultima copia " + FormatDate("%hh:%ii:%ss", Date()))
+  If Hour(Date()) % 12 = 0 And Minute(Date()) = 00 And Second(Date()) = 0
+    If Not copiado
+      copiado = #True
+      crear_backup(dbname, backup_dir)
+      StatusBarText(#barra_estado, 4, "Ultima copia " + FormatDate("%hh:%ii:%ss", Date()))
+    EndIf 
+    
   Else 
     copiado = #False
   EndIf 
@@ -755,8 +758,8 @@ Until salir = #True
 
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 563
-; FirstLine = 279
+; CursorPosition = 561
+; FirstLine = 236
 ; Folding = AA6
 ; EnableXP
 ; UseIcon = resources\tac.ico
