@@ -6,7 +6,7 @@ IncludeFile "funciones.pb"
 
 Enumeration
   #archivo_turnos : #ventana_principal : #icono : #acerca_de : #menu_principal : #menu_copia
-  #panel_principal : #lista_turnos : #about_image : #about_ico :#ventana_ayuda : #bd_pacientes : #ver_log : #menu_exportar_csv
+  #panel_principal : #lista_turnos : #about_image : #about_ico :#ventana_ayuda : #bd_pacientes : #ver_log : #menu_exportar_csv : #menu_exportar_fecha
   
   #lista_tecnicos : #campo_fecha :#campo_dni :#campo_apellido
   #campo_nombre : #lista_ubicacion : #campo_id
@@ -49,40 +49,6 @@ UseSQLiteDatabase()
 
 Global dbname.s = "resources\gestion_tomografia.db" : Global user.s = "" : Global pass.s = "" : backup_dir.s = "resources\backups\" : contrasenia.s = "tomo_central_2024"
 
-Procedure barra_total_estudios() ;muestra valores en la barra de estado
-  If OpenDatabase(#base_datos, dbname, user, pass)
-    hoy.s = FormatDate("%yyyy-%mm-%dd", Date())
-    anio.s = FormatDate("%yyyy", Date())
-    mes.s = FormatDate("%yyyy-%mm", Date())
-    If DatabaseQuery(#base_datos, "SELECT count(*) FROM registro_pacientes where fecha like '" + hoy + "%';")
-      While NextDatabaseRow(#base_datos)
-        total = GetDatabaseLong(#base_datos, 0)
-      Wend  
-      FinishDatabaseQuery(#base_datos)
-      StatusBarText(#barra_estado, 1, "Total estudios de hoy: " + total)
-      
-      DatabaseQuery(#base_datos, "SELECT count(*) FROM registro_pacientes where fecha like '" + anio + "%';")
-      While NextDatabaseRow(#base_datos)
-        total = GetDatabaseLong(#base_datos, 0)
-      Wend  
-      FinishDatabaseQuery(#base_datos)
-      StatusBarText(#barra_estado, 2, "Total estudios del año: " + total)
-      
-      DatabaseQuery(#base_datos, "SELECT count(*) FROM registro_pacientes where fecha like '" + mes + "%';")
-      While NextDatabaseRow(#base_datos)
-        total = GetDatabaseLong(#base_datos, 0)
-      Wend
-      FinishDatabaseQuery(#base_datos)
-    Else
-      MessageRequester("Error", DatabaseError())
-    EndIf
-  Else
-    MessageRequester("Error", DatabaseError()) 
-  EndIf 
-
-  StatusBarText(#barra_estado, 3, "Total estudios del mes: " + total)
-  
-EndProcedure
 
 Procedure.s leer_estudios() ;lee los estudios marcados el las listicon y los guarda en un texto
   NewList  lista_estudios.s()
@@ -242,12 +208,12 @@ Procedure actualizar_lista_pacientes(filtro.s = "") ; actualizacion de gadget li
         nombre.s = GetDatabaseString(#base_datos, 3) + ", " + StringField(GetDatabaseString(#base_datos, 4), 1, " ")
         dni.s = GetDatabaseString(#base_datos, 2)
         estudios.s = GetDatabaseString(#base_datos, 6)
-        tecnico.s = StringField(GetDatabaseString(#base_datos, 11), 1, ",")
+        tecnico.s = StringField(GetDatabaseString(#base_datos, 11), 1, ",") + "," + Mid(StringField(GetDatabaseString(#base_datos, 11), 2, ","), 1, 2) + "."
         diagnostico.s = GetDatabaseString(#base_datos, 9)
         
         AddGadgetItem(#listado_pacientes, -1, nro + Chr(10) + fecha + Chr(10) + nombre + Chr(10) + dni + Chr(10) + estudios + Chr(10) + diagnostico + Chr(10) + tecnico)
         If i%2 = 0
-          SetGadgetItemColor(#listado_pacientes, i, #PB_Gadget_BackColor, $AACD66)          
+          SetGadgetItemColor(#listado_pacientes, i, #PB_Gadget_BackColor, $EEE58E)          
         EndIf 
         i + 1
       Wend 
@@ -329,6 +295,7 @@ Procedure ver_detalle_paciente()
   SetGadgetText(#detalle_comentarios, comentarios)
   
   ClearGadgetItems(#detalle_estudios)
+
   total = CountString(estudios, ",")
   For i=1 To total+1
     AddGadgetItem(#detalle_estudios, -1, StringField(estudios, i,", "))
@@ -408,6 +375,7 @@ Procedure ventana_principal()
   MenuItem(#ver_log, "Ver log")
   MenuItem(#menu_copia, "Crear backup")
   MenuItem(#menu_exportar_csv, "Exportar archivo csv")
+  MenuItem(#menu_exportar_fecha, "Exportar cvs entre fechas")
   DisableMenuItem(#menu_principal, #ver_log, 1)
   
   TextGadget(#PB_Any, 40, 28, 130, 25, "Fecha y hora")
@@ -436,10 +404,10 @@ Procedure ventana_principal()
   AddGadgetItem(#lista_contraste, -1, "Contraste Oral", 0, 1)
   AddGadgetItem(#lista_contraste, -1, "Contraste EV", 0, 2)
   AddGadgetItem(#lista_contraste, -1, "Contraste Oral y EV", 0, 3) : SetGadgetState(#lista_contraste, 0)
-  TextGadget(#PB_Any, 500, 148, 130, 25, "Solicitante")
-  StringGadget(#campo_medico, 640, 148, 290, 25, "")
-  TextGadget(#PB_Any, 500, 188, 130, 25, "Sala")
-  StringGadget(#campo_sala, 640, 188, 290, 25, "")
+  TextGadget(#PB_Any, 500, 148, 130, 25, "Sala")
+  StringGadget(#campo_sala, 640, 148, 290, 25, "")
+  TextGadget(#PB_Any, 500, 188, 130, 25, "Solicitante")
+  StringGadget(#campo_medico, 640, 188, 290, 25, "")
   
   ListIconGadget(#estudios_cabeza, 40, 248, 280, 190, "Cabreza y Cuello", 270, #PB_ListIcon_CheckBoxes | #PB_ListIcon_GridLines)
   ListIconGadget(#estudios_torso, 340, 248, 280, 190, "Torso", 270, #PB_ListIcon_CheckBoxes | #PB_ListIcon_GridLines)
@@ -449,7 +417,7 @@ Procedure ventana_principal()
   StringGadget(#campo_diagnostico, 220, 458, 700, 25, "") 
   ButtonGadget(#boton_guardar, 560, 588, 190, 60, "Guardar")
   TextGadget(#PB_Any, 70, 498, 130, 50, "Comentarios")
-  EditorGadget(#campo_comentarios, 220, 498, 700, 70)
+  EditorGadget(#campo_comentarios, 220, 498, 700, 70, #PB_Editor_WordWrap)
   ButtonGadget(#boton_limpiar, 260, 588, 190, 60, "Limpiar")
   
   AddGadgetItem(#panel_principal, 1, "Lista de pacientes")
@@ -570,7 +538,7 @@ Procedure inicializacion()
   asignar_bd_a_gadget(dbname, "estudios", #estudios_torso, " where region = 'Torso'")
   asignar_bd_a_gadget(dbname, "estudios", #estudios_columna, " where region = 'Columna'")
   asignar_bd_a_gadget(dbname, "estudios", #detalle_agregar_estudios, "", " order by nombre asc")
-  asignar_bd_a_gadget(dbname, "tecnicos", #detalle_tecnico, "", " order by nombre asc ", " apellido || ', ' || nombre ")
+  asignar_bd_a_gadget(dbname, "tecnicos", #detalle_tecnico, "", " order by apellido asc ", " apellido || ', ' || nombre ")
   asignar_id()
   actualizar_lista_pacientes()
   asignar_bd_a_gadget(dbname, "tecnicos", #filtro_tecnico, "", " order by apellido asc ", " apellido || ', ' || nombre ")
@@ -585,15 +553,21 @@ EndProcedure
 inicializacion()
 Repeat 
   event = WindowEvent()
-
+  
   If event = #PB_Event_Timer And EventTimer() = #reloj
     hora$=FormatDate("%dd-%mm-%yyyy %hh:%ii",Date())
     SetGadgetText(#campo_fecha,hora$)
   EndIf
   
-  If Hour(Date()) % 12 = 0 And Minute(Date()) = 0 And Second(Date()) = 0
-    crear_backup(dbname, backup_dir)
-    StatusBarText(#barra_estado, 4, "Ultima copia " + FormatDate("%hh:%ii:%ss", Date()))
+  If Hour(Date()) % 12 = 0 And Minute(Date()) = 00 And Second(Date()) = 0
+    If Not copiado
+      copiado = #True
+      crear_backup(dbname, backup_dir)
+      StatusBarText(#barra_estado, 4, "Ultima copia " + FormatDate("%hh:%ii:%ss", Date()))
+    EndIf 
+    
+  Else 
+    copiado = #False
   EndIf 
   
   If event = #PB_Event_CloseWindow
@@ -607,7 +581,7 @@ Repeat
   Select event 
     Case #PB_Event_Gadget
       Select EventGadget()
-            
+          
         Case #lista_ubicacion
           If GetGadgetState(#lista_ubicacion) = 0
             DisableGadget(#campo_sala, 0)
@@ -636,7 +610,7 @@ Repeat
             encontrado = #False
             DisableGadget(#campo_apellido, 0) : DisableGadget(#campo_nombre, 0)
           EndIf 
-          
+          SetGadgetState(#lista_ubicacion,0) : DisableGadget(#campo_sala, 0)
         Case #lista_turnos
           asignar_bd_a_gadget(dbname, "tecnicos", #lista_tecnicos, " where turno = '" + GetGadgetText(#lista_turnos) + "' ", " order by apellido asc ", " apellido || ', ' || nombre " )
           
@@ -775,15 +749,18 @@ Repeat
           
         Case #menu_exportar_csv
           exportar_csv()
+          
+        Case #menu_exportar_fecha
+          date_requester()
       EndSelect  
   EndSelect
 Until salir = #True
 
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 776
-; FirstLine = 361
-; Folding = hB9
+; CursorPosition = 561
+; FirstLine = 236
+; Folding = AA6
 ; EnableXP
 ; UseIcon = resources\tac.ico
 ; Executable = C:\Users\Rodrigo\Desktop\Registro_pacientes\Registro TAC.exe
